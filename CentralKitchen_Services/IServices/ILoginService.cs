@@ -13,5 +13,7 @@ namespace CentralKitchen_Services.IServices
         User Login(string email, string password);
         Task<bool> Register(RegisterRequestDTO registerDto);
         Task<bool> ChangePassword(ChangePasswordDTO changePasswordDto);
+        Task<bool> ForgotPassword(string email);
+        Task<bool> ResetPassword(ResetPasswordDTO resetDto);
     }
 }

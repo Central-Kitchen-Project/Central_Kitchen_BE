@@ -1,5 +1,7 @@
 ﻿using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
+using CentralKitchen_Services.Services;
+using CentralKitchen_Services.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentralKitchen_API.Controllers
@@ -14,6 +16,29 @@ namespace CentralKitchen_API.Controllers
         {
             _service = service;
             _jwtService = jwtService;
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO dto)
+        {
+            var result = await _service.ResetPassword(dto);
+            if (!result)
+            {
+                return BadRequest(new { Error = "HB40005", Message = "Token invalid or reset failed." });
+            }
+
+            return Ok(new { Status = "Success", Message = "Mật khẩu đã được đặt lại thành công." });
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO dto)
+        {
+            var result = await _service.ForgotPassword(dto.Email);
+            if (!result)
+            {
+                return BadRequest(new { Error = "HB40004", Message = "Không tìm thấy tài khoản hoặc gửi email thất bại." });
+            }
+            return Ok(new { Status = "Success", Message = "Yêu cầu đặt lại mật khẩu đã được gửi qua email." });
         }
 
         [HttpPost("login")]

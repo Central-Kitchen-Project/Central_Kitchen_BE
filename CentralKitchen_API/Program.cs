@@ -17,6 +17,7 @@ builder.Services.AddDbContext <CentralKitchenDBContext> (options =>
 // Dependency Injection
 builder.Services.AddScoped<LoginRepo>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<CentralKitchen_Services.IServices.IEmailService, CentralKitchen_Services.Services.EmailService>();
 var configuration = builder.Configuration;
 // 1. Đăng ký IJwtService
 builder.Services.AddScoped<IJwtService, JwtService>();
