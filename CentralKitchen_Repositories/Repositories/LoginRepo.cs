@@ -33,5 +33,13 @@ namespace CentralKitchen_Repositories.Repository
         {
             return await _context.Users.AnyAsync(x => x.Email == email);
         }
+        public async Task<bool> UpdatePassword(string email, string newPasswordHash)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null) return false;
+
+            user.PasswordHash = newPasswordHash;
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

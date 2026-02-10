@@ -47,6 +47,23 @@ namespace CentralKitchen_Services.Services
 
             return await _repository.RegisterUser(newUser);
         }
+
+        public async Task<bool> ChangePassword(ChangePasswordDTO changePasswordDto)
+        {
+            // 1. Tìm user theo Email
+            var user = _repository.GetAccountByEmail(changePasswordDto.Email);
+            if (user == null) return false;
+
+            // 2. Kiểm tra mật khẩu cũ có đúng không
+            bool isOldPasswordValid = BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash);
+            if (!isOldPasswordValid) return false;
+
+            // 3. Hash mật khẩu mới
+            string newHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+
+            // 4. Cập nhật vào DB
+            return await _repository.UpdatePassword(changePasswordDto.Email, newHash);
+        }
     }
 }
 

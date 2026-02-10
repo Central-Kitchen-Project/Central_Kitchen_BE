@@ -62,5 +62,27 @@ namespace CentralKitchen_API.Controllers
                 Message = "Đăng ký tài khoản thành công!"
             });
         }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changeDto)
+        {
+            var result = await _service.ChangePassword(changeDto);
+
+            if (!result)
+            {
+                return BadRequest(new
+                {
+                    Error = "HB40003",
+                    Message = "Mật khẩu cũ không đúng hoặc không tìm thấy tài khoản."
+                });
+            }
+
+            return Ok(new
+            {
+                Status = "Success",
+                Message = "Đổi mật khẩu thành công!"
+            });
+        }
+
     }
 }
