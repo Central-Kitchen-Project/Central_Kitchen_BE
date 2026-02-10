@@ -42,5 +42,47 @@ namespace CentralKitchen_API.Controllers
 
             });
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerDto)
+        {
+            var isRegistered = await _service.Register(registerDto);
+
+            if (!isRegistered)
+            {
+                return BadRequest(new
+                {
+                    Message = "Email đã tồn tại hoặc thông tin không hợp lệ."
+                });
+            }
+
+            return Ok(new
+            {
+                Status = "Success",
+                Message = "Đăng ký tài khoản thành công!"
+            });
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changeDto)
+        {
+            var result = await _service.ChangePassword(changeDto);
+
+            if (!result)
+            {
+                return BadRequest(new
+                {
+                    Error = "HB40003",
+                    Message = "Mật khẩu cũ không đúng hoặc không tìm thấy tài khoản."
+                });
+            }
+
+            return Ok(new
+            {
+                Status = "Success",
+                Message = "Đổi mật khẩu thành công!"
+            });
+        }
+
     }
 }
