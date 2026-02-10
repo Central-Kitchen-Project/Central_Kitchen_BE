@@ -1,4 +1,5 @@
 ﻿using CentralKitchen_Repositories.Models;
+using CentralKitchen_Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace CentralKitchen_Services.IServices
     public interface ILoginService
     {
         User Login(string email, string password);
+        Task<bool> Register(RegisterRequestDTO registerDto);
     }
 }
