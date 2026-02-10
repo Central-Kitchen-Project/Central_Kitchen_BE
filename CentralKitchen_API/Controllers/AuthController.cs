@@ -42,5 +42,25 @@ namespace CentralKitchen_API.Controllers
 
             });
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerDto)
+        {
+            var isRegistered = await _service.Register(registerDto);
+
+            if (!isRegistered)
+            {
+                return BadRequest(new
+                {
+                    Message = "Email đã tồn tại hoặc thông tin không hợp lệ."
+                });
+            }
+
+            return Ok(new
+            {
+                Status = "Success",
+                Message = "Đăng ký tài khoản thành công!"
+            });
+        }
     }
 }
