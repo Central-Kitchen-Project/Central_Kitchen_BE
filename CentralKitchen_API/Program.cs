@@ -1,5 +1,6 @@
 ﻿using CentralKitchen_Repositories.Models;
 using CentralKitchen_Repositories.Repository;
+using CentralKitchen_Repositories.Repositories;
 using CentralKitchen_Services.IServices;
 using CentralKitchen_Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,7 +17,9 @@ builder.Services.AddDbContext <CentralKitchenDBContext> (options =>
 
 // Dependency Injection
 builder.Services.AddScoped<LoginRepo>();
+builder.Services.AddScoped<OrderRepo>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<CentralKitchen_Services.IServices.IEmailService, CentralKitchen_Services.Services.EmailService>();
 var configuration = builder.Configuration;
 // 1. Đăng ký IJwtService
