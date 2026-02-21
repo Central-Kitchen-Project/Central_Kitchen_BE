@@ -51,6 +51,30 @@ namespace CentralKitchen_Repositories.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
+        /// <summary>
+        /// Lấy tổng tồn kho của các item (gộp tất cả location)
+        /// </summary>
+        public async Task<Dictionary<int, decimal>> GetInventoryByItemIdsAsync(List<int> itemIds)
+        {
+            return await _context.Inventories
+                .Where(inv => itemIds.Contains(inv.ItemId))
+                .GroupBy(inv => inv.ItemId)
+                .ToDictionaryAsync(
+                    g => g.Key,
+                    g => g.Sum(inv => inv.Quantity ?? 0)
+                );
+        }
+
+        /// <summary>
+        /// Lấy tên item theo danh sách IDs
+        /// </summary>
+        public async Task<Dictionary<int, string>> GetItemNamesByIdsAsync(List<int> itemIds)
+        {
+            return await _context.Items
+                .Where(i => itemIds.Contains(i.Id))
+                .ToDictionaryAsync(i => i.Id, i => i.ItemName);
+        }
+
         public async Task<bool> DeleteOrderAsync(int id)
         {
             var order = await _context.Orders
