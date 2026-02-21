@@ -40,17 +40,30 @@ namespace CentralKitchen_API.Controllers
         }
 
         /// <summary>
-        /// Tạo đơn hàng mới
+        /// Tạo đơn hàng mới (kiểm tra tồn kho trước khi tạo)
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDTO dto)
         {
-            var order = await _orderService.CreateOrderAsync(dto);
-            if (order == null)
+            var result = await _orderService.CreateOrderAsync(dto);
+
+            if (!result.Success)
             {
-                return BadRequest(new { Error = "OR40002", Message = "Tạo đơn hàng thất bại. Vui lòng kiểm tra lại dữ liệu." });
+                // Nếu thiếu hàng → trả về danh sách item bị thiếu
+                if (result.InsufficientItems != null && result.InsufficientItems.Count > 0)
+                {
+                    return Conflict(new
+                    {
+                        Error = "OR40005",
+                        Message = result.Message,
+                        InsufficientItems = result.InsufficientItems
+                    });
+                }
+
+                return BadRequest(new { Error = "OR40002", Message = result.Message });
             }
-            return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, new { Status = "Success", Data = order });
+
+            return CreatedAtAction(nameof(GetOrderById), new { id = result.Order!.Id }, new { Status = "Success", Data = result.Order });
         }
 
         /// <summary>
