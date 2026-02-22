@@ -138,9 +138,18 @@ namespace CentralKitchen_Services.Services
                 {
                     Id = ol.Id,
                     ItemId = ol.ItemId,
-                    ItemName = ol.Item?.ItemName ?? "",
+                    Name = ol.Item?.ItemName ?? "",
+                    Type = ol.Item?.ItemType ?? "",
+                    Category = ol.Item?.Category ?? "",
+                    Description = ol.Item?.Description ?? "",
+                    Price = ol.Item?.Price,
                     Quantity = ol.Quantity,
-                    Unit = ol.Item?.Unit ?? ""
+                    Ingredients = ol.Item?.RecipeFinishedItems?.Select(r => new IngredientDTO
+                    {
+                        Name = r.IngredientItem?.ItemName ?? "",
+                        Qty = r.Quantity,
+                        Unit = r.IngredientItem?.Unit ?? ""
+                    }).ToList() ?? new List<IngredientDTO>()
                 }).ToList()
             };
         }

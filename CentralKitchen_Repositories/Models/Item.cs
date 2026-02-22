@@ -15,6 +15,12 @@ public partial class Item
 
     public string ItemType { get; set; }
 
+    public string Description { get; set; }
+
+    public decimal? Price { get; set; }
+
+    public string Category { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();

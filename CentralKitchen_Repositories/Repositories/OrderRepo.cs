@@ -23,6 +23,8 @@ namespace CentralKitchen_Repositories.Repositories
                 .Include(o => o.User)
                 .Include(o => o.OrderLines)
                     .ThenInclude(ol => ol.Item)
+                        .ThenInclude(i => i.RecipeFinishedItems)
+                            .ThenInclude(r => r.IngredientItem)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
@@ -33,6 +35,8 @@ namespace CentralKitchen_Repositories.Repositories
                 .Include(o => o.User)
                 .Include(o => o.OrderLines)
                     .ThenInclude(ol => ol.Item)
+                        .ThenInclude(i => i.RecipeFinishedItems)
+                            .ThenInclude(r => r.IngredientItem)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
