@@ -28,8 +28,10 @@ builder.Services.AddDbContext <CentralKitchenDBContext> (options =>
 // Dependency Injection
 builder.Services.AddScoped<LoginRepo>();
 builder.Services.AddScoped<OrderRepo>();
+builder.Services.AddScoped<MaterialRequestRepo>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IMaterialRequestService, MaterialRequestService>();
 builder.Services.AddScoped<CentralKitchen_Services.IServices.IEmailService, CentralKitchen_Services.Services.EmailService>();
 var configuration = builder.Configuration;
 // 1. Đăng ký IJwtService

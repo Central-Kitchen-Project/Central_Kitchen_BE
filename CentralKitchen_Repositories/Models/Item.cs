@@ -36,4 +36,6 @@ public partial class Item
     public virtual ICollection<Recipe> RecipeIngredientItems { get; set; } = new List<Recipe>();
 
     public virtual ICollection<ShipmentLine> ShipmentLines { get; set; } = new List<ShipmentLine>();
+
+    public virtual ICollection<MaterialRequestLine> MaterialRequestLines { get; set; } = new List<MaterialRequestLine>();
 }
