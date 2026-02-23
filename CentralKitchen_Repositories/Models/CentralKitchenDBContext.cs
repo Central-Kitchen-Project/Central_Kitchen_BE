@@ -47,6 +47,10 @@ public partial class CentralKitchenDBContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<MaterialRequest> MaterialRequests { get; set; }
+
+    public virtual DbSet<MaterialRequestLine> MaterialRequestLines { get; set; }
+
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -400,6 +404,64 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_users_roles");
+        });
+
+        modelBuilder.Entity<MaterialRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_material_requests");
+
+            entity.ToTable("material_requests");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.RequestedByUserId).HasColumnName("requested_by_user_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasColumnName("status");
+            entity.Property(e => e.Note)
+                .HasMaxLength(500)
+                .HasColumnName("note");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_material_request_order");
+
+            entity.HasOne(d => d.RequestedByUser).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.RequestedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_material_request_user");
+        });
+
+        modelBuilder.Entity<MaterialRequestLine>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_material_request_lines");
+
+            entity.ToTable("material_request_lines");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.MaterialRequestId).HasColumnName("material_request_id");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.RequestedQuantity)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("requested_quantity");
+            entity.Property(e => e.CurrentStock)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("current_stock");
+
+            entity.HasOne(d => d.MaterialRequest).WithMany(p => p.MaterialRequestLines)
+                .HasForeignKey(d => d.MaterialRequestId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_mrl_material_request");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaterialRequestLines)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_mrl_item");
         });
 
         OnModelCreatingPartial(modelBuilder);
