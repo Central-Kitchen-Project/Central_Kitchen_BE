@@ -27,8 +27,6 @@ namespace CentralKitchen_Services.DTOs
         public string Username { get; set; }
         public int? OrderId { get; set; }
         public string RefId { get; set; }           // #ORD-XXXX
-        public int? ItemId { get; set; }
-        public string ItemName { get; set; }
         public string Category { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }

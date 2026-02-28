@@ -34,9 +34,9 @@ namespace CentralKitchen_Services.Services
             return feedback != null ? MapToResponseDTO(feedback) : null;
         }
 
-        public async Task<List<FeedbackResponseDTO>> GetFeedbacksByItemIdAsync(int itemId)
+        public async Task<List<FeedbackResponseDTO>> GetFeedbacksByOrderIdAsync(int orderId)
         {
-            var feedbacks = await _feedbackRepo.GetFeedbacksByItemIdAsync(itemId);
+            var feedbacks = await _feedbackRepo.GetFeedbacksByOrderIdAsync(orderId);
             return feedbacks.Select(MapToResponseDTO).ToList();
         }
 
@@ -96,8 +96,6 @@ namespace CentralKitchen_Services.Services
                 Username = feedback.User?.Username ?? "",
                 OrderId = feedback.OrderId,
                 RefId = feedback.OrderId.HasValue ? $"#ORD-{feedback.OrderId.Value}" : null,
-                ItemId = feedback.ItemId,
-                ItemName = feedback.Item?.ItemName ?? "",
                 Category = feedback.Category,
                 Subject = feedback.Subject,
                 Description = feedback.Description,

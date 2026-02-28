@@ -39,12 +39,12 @@ namespace CentralKitchen_API.Controllers
         }
 
         /// <summary>
-        /// Lấy feedback theo Item ID
+        /// Lấy feedback theo Order ID (REF ID)
         /// </summary>
-        [HttpGet("item/{itemId}")]
-        public async Task<IActionResult> GetFeedbacksByItemId(int itemId)
+        [HttpGet("order/{orderId}")]
+        public async Task<IActionResult> GetFeedbacksByOrderId(int orderId)
         {
-            var feedbacks = await _feedbackService.GetFeedbacksByItemIdAsync(itemId);
+            var feedbacks = await _feedbackService.GetFeedbacksByOrderIdAsync(orderId);
             return Ok(new { Status = "Success", Data = feedbacks });
         }
 

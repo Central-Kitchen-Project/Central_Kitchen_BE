@@ -36,13 +36,12 @@ namespace CentralKitchen_Repositories.Repositories
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 
-        public async Task<List<QualityFeedback>> GetFeedbacksByItemIdAsync(int itemId)
+        public async Task<List<QualityFeedback>> GetFeedbacksByOrderIdAsync(int orderId)
         {
             return await _context.QualityFeedbacks
-                .Include(f => f.Item)
                 .Include(f => f.User)
                 .Include(f => f.Order)
-                .Where(f => f.ItemId == itemId)
+                .Where(f => f.OrderId == orderId)
                 .OrderByDescending(f => f.FeedbackDate)
                 .ToListAsync();
         }

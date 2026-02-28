@@ -11,7 +11,7 @@ namespace CentralKitchen_Services.IServices
     {
         Task<List<FeedbackResponseDTO>> GetAllFeedbacksAsync();
         Task<FeedbackResponseDTO?> GetFeedbackByIdAsync(int id);
-        Task<List<FeedbackResponseDTO>> GetFeedbacksByItemIdAsync(int itemId);
+        Task<List<FeedbackResponseDTO>> GetFeedbacksByOrderIdAsync(int orderId);
         Task<List<FeedbackResponseDTO>> GetFeedbacksByStatusAsync(string status);
         Task<FeedbackResponseDTO?> CreateFeedbackAsync(CreateFeedbackDTO dto);
         Task<bool> UpdateFeedbackStatusAsync(int id, UpdateFeedbackStatusDTO dto);
