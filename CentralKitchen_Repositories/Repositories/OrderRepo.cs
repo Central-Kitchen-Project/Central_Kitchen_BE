@@ -79,6 +79,69 @@ namespace CentralKitchen_Repositories.Repositories
                 .ToDictionaryAsync(i => i.Id, i => i.ItemName);
         }
 
+        /// <summary>
+        /// Lấy role name của user theo userId
+        /// </summary>
+        public async Task<string?> GetUserRoleNameAsync(int userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            return user?.Role?.RoleName;
+        }
+
+        /// <summary>
+        /// Cập nhật số lượng tồn kho (cộng hoặc trừ)
+        /// </summary>
+        public async Task<bool> UpdateInventoryQuantityAsync(int itemId, int locationId, decimal quantityChange)
+        {
+            var inventory = await _context.Inventories
+                .FirstOrDefaultAsync(i => i.ItemId == itemId && i.LocationId == locationId);
+
+            if (inventory == null)
+            {
+                // Tạo mới nếu chưa có record inventory cho item này tại location
+                inventory = new Inventory
+                {
+                    ItemId = itemId,
+                    LocationId = locationId,
+                    Quantity = quantityChange > 0 ? quantityChange : 0
+                };
+                _context.Inventories.Add(inventory);
+            }
+            else
+            {
+                inventory.Quantity = (inventory.Quantity ?? 0) + quantityChange;
+                if (inventory.Quantity < 0) inventory.Quantity = 0;
+            }
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        /// <summary>
+        /// Ghi log giao dịch kho
+        /// </summary>
+        public async Task CreateInventoryTransactionAsync(int itemId, int locationId, string txType, decimal quantity, int orderId)
+        {
+            var inventory = await _context.Inventories
+                .FirstOrDefaultAsync(i => i.ItemId == itemId && i.LocationId == locationId);
+
+            if (inventory != null)
+            {
+                var transaction = new InventoryTransaction
+                {
+                    InventoryId = inventory.Id,
+                    TxType = txType,
+                    Quantity = quantity,
+                    ReferenceType = "order",
+                    ReferenceId = orderId,
+                    CreatedAt = DateTime.Now
+                };
+                _context.InventoryTransactions.Add(transaction);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<bool> DeleteOrderAsync(int id)
         {
             var order = await _context.Orders
