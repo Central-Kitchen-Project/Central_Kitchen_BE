@@ -19,9 +19,9 @@ namespace CentralKitchen_Services.Services
             _repo = repo;
         }
 
-        public async Task<IEnumerable<InventoryDTO>> GetAllInventories()
+        public async Task<IEnumerable<InventoryDTO>> GetAllInventories(int userId)
         {
-            var inventories = await _repo.GetAllAsync();
+            var inventories = await _repo.GetAllAsync(userId);
 
             // Chuyển đổi thủ công từ Entity sang DTO
             return inventories.Select(inv => new InventoryDTO
@@ -47,10 +47,10 @@ namespace CentralKitchen_Services.Services
             });
         }
 
-        public async Task<InventoryDTO> GetInventoryById(int id)
+        public async Task<InventoryDTO> GetInventoryById(int id, int userId)
         {
             // Lấy dữ liệu từ Repository (đã bao gồm Include Item và Location)
-            var inv = await _repo.GetByIdAsync(id);
+            var inv = await _repo.GetByIdAsync(id, userId);
 
             // Kiểm tra nếu không tìm thấy bản ghi
             if (inv == null) return null;
@@ -83,9 +83,9 @@ namespace CentralKitchen_Services.Services
             };
         }
 
-        public async Task<bool> UpdateStock(int id, decimal newQuantity)
+        public async Task<bool> UpdateStock(int id, decimal newQuantity,int userId)
         {
-            var inventory = await _repo.GetByIdAsync(id);
+            var inventory = await _repo.GetByIdAsync(id, userId);
             if (inventory == null) return false;
 
             // Logic nghiệp vụ: Cập nhật số lượng
