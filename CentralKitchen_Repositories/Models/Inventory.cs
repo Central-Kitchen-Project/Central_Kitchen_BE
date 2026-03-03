@@ -20,4 +20,8 @@ public partial class Inventory
     public virtual Item Item { get; set; }
 
     public virtual Location Location { get; set; }
+    //thêm 
+    public int? ManagedBy { get; set; } // Cột managed_by
+
+    public virtual User ManagedByUser { get; set; } // Navigation property
 }

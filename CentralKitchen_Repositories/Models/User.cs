@@ -20,8 +20,10 @@ public partial class User
     public DateTime? CreatedAt { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
+            
     public virtual ICollection<MaterialRequest> MaterialRequests { get; set; } = new List<MaterialRequest>();
 
     public virtual Role Role { get; set; }
+    //thêm
+    public virtual ICollection<Inventory> ManagedInventories { get; set; } = new List<Inventory>();
 }
