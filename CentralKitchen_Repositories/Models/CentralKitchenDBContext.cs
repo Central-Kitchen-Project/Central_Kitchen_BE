@@ -77,6 +77,15 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasForeignKey(d => d.LocationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_inventory_location");
+
+            // thêm
+            entity.Property(e => e.ManagedBy).HasColumnName("managed_by");
+
+            entity.HasOne(d => d.ManagedByUser)
+                .WithMany(p => p.ManagedInventories)
+                .HasForeignKey(d => d.ManagedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull) // Hoặc SetNull tùy nhu cầu
+                .HasConstraintName("fk_inventory_user");
         });
 
         modelBuilder.Entity<InventoryTransaction>(entity =>

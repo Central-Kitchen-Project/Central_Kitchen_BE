@@ -10,9 +10,9 @@ namespace CentralKitchen_Services.IServices
 {
     public interface IInventoryService
     {
-        Task<IEnumerable<InventoryDTO>> GetAllInventories();
-        Task<InventoryDTO> GetInventoryById(int id);
-        Task<bool> UpdateStock(int id, decimal newQuantity);
+        Task<IEnumerable<InventoryDTO>> GetAllInventories(int userId);
+        Task<InventoryDTO> GetInventoryById(int id, int userId);
+        Task<bool> UpdateStock(int id, decimal newQuantity, int userId);
     }
 
 
