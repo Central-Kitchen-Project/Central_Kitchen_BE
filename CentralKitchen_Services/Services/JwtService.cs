@@ -30,7 +30,8 @@ namespace CentralKitchen_Services.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, account.RoleId.ToString()),
-            };
+				new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+			};
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

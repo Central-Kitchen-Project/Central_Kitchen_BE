@@ -9,11 +9,27 @@ public partial class QualityFeedback
 {
     public int Id { get; set; }
 
+<<<<<<< Updated upstream
     public int? ItemId { get; set; }
+=======
+    public int? UserId { get; set; }
+
+    public int? OrderId { get; set; }
+
+    public string Category { get; set; }
+
+    public string Subject { get; set; }
+>>>>>>> Stashed changes
 
     public string Description { get; set; }
 
     public DateTime? FeedbackDate { get; set; }
 
+<<<<<<< Updated upstream
     public virtual Item Item { get; set; }
+=======
+    public virtual User User { get; set; }
+
+    public virtual Order Order { get; set; }
+>>>>>>> Stashed changes
 }

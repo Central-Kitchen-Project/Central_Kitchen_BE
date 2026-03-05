@@ -109,7 +109,70 @@ namespace CentralKitchen_Services.Services
             if (order == null) return false;
 
             order.Status = dto.Status;
+<<<<<<< Updated upstream
             return await _orderRepo.UpdateOrderAsync(order);
+=======
+            var updated = await _orderRepo.UpdateOrderAsync(order);
+
+            // Khi đơn hàng hoàn tất → cập nhật tồn kho
+            if (updated && dto.Status == "Completed")
+            {
+                await ProcessInventoryOnCompleted(order);
+            }
+
+            return updated;
+        }
+
+        /// <summary>
+        /// Xử lý tồn kho khi đơn hàng hoàn tất
+        /// - Franchise Store Staff tạo order: CỘNG kho franchise, TRỪ kho supplier
+        /// - Supply Coordinator tạo order: TRỪ kho supplier, CỘNG kho franchise  
+        /// </summary>
+        private async Task ProcessInventoryOnCompleted(Order order)
+        {
+            var roleName = await _orderRepo.GetUserRoleNameAsync(order.UserId);
+            if (string.IsNullOrEmpty(roleName)) return;
+
+            // Tìm userId của bên còn lại
+            int franchiseUserId = 0;
+            int supplierUserId = 0;
+
+            if (roleName == "FranchiseStore")
+            {
+                franchiseUserId = order.UserId;
+                // Tìm supplier đầu tiên
+                var suppliers = await _orderRepo.GetUserIdsByRoleAsync("SupplyCoordinator");
+                if (suppliers.Count > 0) supplierUserId = suppliers[0];
+            }
+            else if (roleName == "SupplyCoordinator")
+            {
+                supplierUserId = order.UserId;
+                // Tìm franchise đầu tiên
+                var franchises = await _orderRepo.GetUserIdsByRoleAsync("FranchiseStore");
+                if (franchises.Count > 0) franchiseUserId = franchises[0];
+            }
+            else return;
+
+            foreach (var line in order.OrderLines)
+            {
+                var quantity = line.Quantity ?? 0;
+                if (quantity <= 0) continue;
+
+                // CỘNG kho franchise (nhận hàng)
+                if (franchiseUserId > 0)
+                {
+                    await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, franchiseUserId, quantity);
+                    await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, franchiseUserId, "order_in", quantity, order.Id);
+                }
+
+                // TRỪ kho supplier (xuất hàng)
+                if (supplierUserId > 0)
+                {
+                    await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, supplierUserId, -quantity);
+                    await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, supplierUserId, "order_out", quantity, order.Id);
+                }
+            }
+>>>>>>> Stashed changes
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
