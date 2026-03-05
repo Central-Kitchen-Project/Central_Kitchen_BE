@@ -109,7 +109,47 @@ namespace CentralKitchen_Services.Services
             if (order == null) return false;
 
             order.Status = dto.Status;
-            return await _orderRepo.UpdateOrderAsync(order);
+            var updated = await _orderRepo.UpdateOrderAsync(order);
+
+            // Khi đơn hàng hoàn tất → cập nhật tồn kho
+            if (updated && dto.Status == "Completed")
+            {
+                await ProcessInventoryOnCompleted(order);
+            }
+
+            return updated;
+        }
+
+        /// <summary>
+        /// Xử lý tồn kho khi đơn hàng hoàn tất
+        /// - Franchise Store Staff: CỘNG vào kho (nhận hàng)
+        /// - Supply Coordinator: TRỪ khỏi kho (xuất hàng)
+        /// </summary>
+        private async Task ProcessInventoryOnCompleted(Order order)
+        {
+            var roleName = await _orderRepo.GetUserRoleNameAsync(order.UserId);
+            if (string.IsNullOrEmpty(roleName)) return;
+
+            int locationId = 1; // Kho chính (mặc định)
+
+            foreach (var line in order.OrderLines)
+            {
+                var quantity = line.Quantity ?? 0;
+                if (quantity <= 0) continue;
+
+                if (roleName == "Franchise Store Staff")
+                {
+                    // Franchise nhận hàng → CỘNG tồn kho
+                    await _orderRepo.UpdateInventoryQuantityAsync(line.ItemId, locationId, quantity);
+                    await _orderRepo.CreateInventoryTransactionAsync(line.ItemId, locationId, "order_in", quantity, order.Id);
+                }
+                else if (roleName == "Supply Coordinator")
+                {
+                    // Supplier xuất hàng → TRỪ tồn kho
+                    await _orderRepo.UpdateInventoryQuantityAsync(line.ItemId, locationId, -quantity);
+                    await _orderRepo.CreateInventoryTransactionAsync(line.ItemId, locationId, "order_out", quantity, order.Id);
+                }
+            }
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
