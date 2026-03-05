@@ -35,9 +35,17 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IMaterialRequestService, MaterialRequestService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<CentralKitchen_Services.IServices.IEmailService, CentralKitchen_Services.Services.EmailService>();
+builder.Services.AddScoped<InventoryRepo>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<InventoryTransactionRepo>();
+builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
 var configuration = builder.Configuration;
 // 1. Đăng ký IJwtService
 builder.Services.AddScoped<IJwtService, JwtService>();
+
+// Feedback
+builder.Services.AddScoped<CentralKitchen_Repositories.Repositories.FeedbackRepo>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 // 2. Cấu hình JWT Bearer Authentication
 builder.Services.AddAuthentication(options =>

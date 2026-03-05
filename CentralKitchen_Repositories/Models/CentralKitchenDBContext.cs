@@ -77,6 +77,15 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasForeignKey(d => d.LocationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_inventory_location");
+
+            // thêm
+            entity.Property(e => e.ManagedBy).HasColumnName("managed_by");
+
+            entity.HasOne(d => d.ManagedByUser)
+                .WithMany(p => p.ManagedInventories)
+                .HasForeignKey(d => d.ManagedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull) // Hoặc SetNull tùy nhu cầu
+                .HasConstraintName("fk_inventory_user");
         });
 
         modelBuilder.Entity<InventoryTransaction>(entity =>
@@ -244,13 +253,6 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("feedback_date");
-<<<<<<< Updated upstream
-            entity.Property(e => e.ItemId).HasColumnName("item_id");
-
-            entity.HasOne(d => d.Item).WithMany(p => p.QualityFeedbacks)
-                .HasForeignKey(d => d.ItemId)
-                .HasConstraintName("fk_feedback_item");
-=======
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.Category)
@@ -271,8 +273,6 @@ public partial class CentralKitchenDBContext : DbContext
             entity.HasOne(d => d.Order).WithMany()
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("fk_feedback_order");
->>>>>>> Stashed changes
-        });
 
         modelBuilder.Entity<Recipe>(entity =>
         {

@@ -109,9 +109,6 @@ namespace CentralKitchen_Services.Services
             if (order == null) return false;
 
             order.Status = dto.Status;
-<<<<<<< Updated upstream
-            return await _orderRepo.UpdateOrderAsync(order);
-=======
             var updated = await _orderRepo.UpdateOrderAsync(order);
 
             // Khi đơn hàng hoàn tất → cập nhật tồn kho
@@ -172,7 +169,7 @@ namespace CentralKitchen_Services.Services
                     await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, supplierUserId, "order_out", quantity, order.Id);
                 }
             }
->>>>>>> Stashed changes
+
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
