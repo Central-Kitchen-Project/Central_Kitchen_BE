@@ -122,32 +122,51 @@ namespace CentralKitchen_Services.Services
 
         /// <summary>
         /// Xử lý tồn kho khi đơn hàng hoàn tất
-        /// - Franchise Store Staff: CỘNG vào kho (nhận hàng)
-        /// - Supply Coordinator: TRỪ khỏi kho (xuất hàng)
+        /// - Franchise Store Staff tạo order: CỘNG kho franchise, TRỪ kho supplier
+        /// - Supply Coordinator tạo order: TRỪ kho supplier, CỘNG kho franchise  
         /// </summary>
         private async Task ProcessInventoryOnCompleted(Order order)
         {
             var roleName = await _orderRepo.GetUserRoleNameAsync(order.UserId);
             if (string.IsNullOrEmpty(roleName)) return;
 
-            int locationId = 1; // Kho chính (mặc định)
+            // Tìm userId của bên còn lại
+            int franchiseUserId = 0;
+            int supplierUserId = 0;
+
+            if (roleName == "Franchise Store Staff")
+            {
+                franchiseUserId = order.UserId;
+                // Tìm supplier đầu tiên
+                var suppliers = await _orderRepo.GetUserIdsByRoleAsync("Supply Coordinator");
+                if (suppliers.Count > 0) supplierUserId = suppliers[0];
+            }
+            else if (roleName == "Supply Coordinator")
+            {
+                supplierUserId = order.UserId;
+                // Tìm franchise đầu tiên
+                var franchises = await _orderRepo.GetUserIdsByRoleAsync("Franchise Store Staff");
+                if (franchises.Count > 0) franchiseUserId = franchises[0];
+            }
+            else return;
 
             foreach (var line in order.OrderLines)
             {
                 var quantity = line.Quantity ?? 0;
                 if (quantity <= 0) continue;
 
-                if (roleName == "Franchise Store Staff")
+                // CỘNG kho franchise (nhận hàng)
+                if (franchiseUserId > 0)
                 {
-                    // Franchise nhận hàng → CỘNG tồn kho
-                    await _orderRepo.UpdateInventoryQuantityAsync(line.ItemId, locationId, quantity);
-                    await _orderRepo.CreateInventoryTransactionAsync(line.ItemId, locationId, "order_in", quantity, order.Id);
+                    await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, franchiseUserId, quantity);
+                    await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, franchiseUserId, "order_in", quantity, order.Id);
                 }
-                else if (roleName == "Supply Coordinator")
+
+                // TRỪ kho supplier (xuất hàng)
+                if (supplierUserId > 0)
                 {
-                    // Supplier xuất hàng → TRỪ tồn kho
-                    await _orderRepo.UpdateInventoryQuantityAsync(line.ItemId, locationId, -quantity);
-                    await _orderRepo.CreateInventoryTransactionAsync(line.ItemId, locationId, "order_out", quantity, order.Id);
+                    await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, supplierUserId, -quantity);
+                    await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, supplierUserId, "order_out", quantity, order.Id);
                 }
             }
         }
