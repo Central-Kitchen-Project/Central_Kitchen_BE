@@ -253,7 +253,6 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("feedback_date");
-            entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.Category)
@@ -267,10 +266,6 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasDefaultValueSql("('Received')")
                 .HasColumnName("status");
 
-            entity.HasOne(d => d.Item).WithMany(p => p.QualityFeedbacks)
-                .HasForeignKey(d => d.ItemId)
-                .HasConstraintName("fk_feedback_item");
-
             entity.HasOne(d => d.User).WithMany()
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("fk_feedback_user");
@@ -278,7 +273,6 @@ public partial class CentralKitchenDBContext : DbContext
             entity.HasOne(d => d.Order).WithMany()
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("fk_feedback_order");
-        });
 
         modelBuilder.Entity<Recipe>(entity =>
         {

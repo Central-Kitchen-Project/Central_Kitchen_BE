@@ -29,8 +29,6 @@ public partial class Item
 
     public virtual ICollection<Production> Productions { get; set; } = new List<Production>();
 
-    public virtual ICollection<QualityFeedback> QualityFeedbacks { get; set; } = new List<QualityFeedback>();
-
     public virtual ICollection<Recipe> RecipeFinishedItems { get; set; } = new List<Recipe>();
 
     public virtual ICollection<Recipe> RecipeIngredientItems { get; set; } = new List<Recipe>();

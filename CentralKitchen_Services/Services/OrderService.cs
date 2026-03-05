@@ -134,18 +134,18 @@ namespace CentralKitchen_Services.Services
             int franchiseUserId = 0;
             int supplierUserId = 0;
 
-            if (roleName == "Franchise Store Staff")
+            if (roleName == "FranchiseStore")
             {
                 franchiseUserId = order.UserId;
                 // Tìm supplier đầu tiên
-                var suppliers = await _orderRepo.GetUserIdsByRoleAsync("Supply Coordinator");
+                var suppliers = await _orderRepo.GetUserIdsByRoleAsync("SupplyCoordinator");
                 if (suppliers.Count > 0) supplierUserId = suppliers[0];
             }
-            else if (roleName == "Supply Coordinator")
+            else if (roleName == "SupplyCoordinator")
             {
                 supplierUserId = order.UserId;
                 // Tìm franchise đầu tiên
-                var franchises = await _orderRepo.GetUserIdsByRoleAsync("Franchise Store Staff");
+                var franchises = await _orderRepo.GetUserIdsByRoleAsync("FranchiseStore");
                 if (franchises.Count > 0) franchiseUserId = franchises[0];
             }
             else return;
@@ -169,6 +169,7 @@ namespace CentralKitchen_Services.Services
                     await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, supplierUserId, "order_out", quantity, order.Id);
                 }
             }
+
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
