@@ -91,20 +91,21 @@ namespace CentralKitchen_Repositories.Repositories
         }
 
         /// <summary>
-        /// Cập nhật số lượng tồn kho (cộng hoặc trừ)
+        /// Cập nhật số lượng tồn kho theo managed_by (userId)
         /// </summary>
-        public async Task<bool> UpdateInventoryQuantityAsync(int itemId, int locationId, decimal quantityChange)
+        public async Task<bool> UpdateInventoryByUserAsync(int itemId, int userId, decimal quantityChange)
         {
             var inventory = await _context.Inventories
-                .FirstOrDefaultAsync(i => i.ItemId == itemId && i.LocationId == locationId);
+                .FirstOrDefaultAsync(i => i.ItemId == itemId && i.ManagedBy == userId);
 
             if (inventory == null)
             {
-                // Tạo mới nếu chưa có record inventory cho item này tại location
+                // Tạo mới nếu chưa có record inventory cho item này của user
                 inventory = new Inventory
                 {
                     ItemId = itemId,
-                    LocationId = locationId,
+                    LocationId = 1, // Mặc định kho chính
+                    ManagedBy = userId,
                     Quantity = quantityChange > 0 ? quantityChange : 0
                 };
                 _context.Inventories.Add(inventory);
@@ -119,12 +120,12 @@ namespace CentralKitchen_Repositories.Repositories
         }
 
         /// <summary>
-        /// Ghi log giao dịch kho
+        /// Ghi log giao dịch kho theo managed_by (userId)
         /// </summary>
-        public async Task CreateInventoryTransactionAsync(int itemId, int locationId, string txType, decimal quantity, int orderId)
+        public async Task CreateInventoryTransactionByUserAsync(int itemId, int userId, string txType, decimal quantity, int orderId)
         {
             var inventory = await _context.Inventories
-                .FirstOrDefaultAsync(i => i.ItemId == itemId && i.LocationId == locationId);
+                .FirstOrDefaultAsync(i => i.ItemId == itemId && i.ManagedBy == userId);
 
             if (inventory != null)
             {
@@ -140,6 +141,18 @@ namespace CentralKitchen_Repositories.Repositories
                 _context.InventoryTransactions.Add(transaction);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        /// <summary>
+        /// Lấy danh sách userId theo role name
+        /// </summary>
+        public async Task<List<int>> GetUserIdsByRoleAsync(string roleName)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Role.RoleName == roleName)
+                .Select(u => u.Id)
+                .ToListAsync();
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
