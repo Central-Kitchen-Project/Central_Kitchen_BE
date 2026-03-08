@@ -20,7 +20,6 @@ namespace CentralKitchen_Repositories.Repositories
         public async Task<List<QualityFeedback>> GetAllFeedbacksAsync()
         {
             return await _context.QualityFeedbacks
-                .Include(f => f.Item)
                 .Include(f => f.User)
                 .Include(f => f.Order)
                 .OrderByDescending(f => f.FeedbackDate)
@@ -30,7 +29,6 @@ namespace CentralKitchen_Repositories.Repositories
         public async Task<QualityFeedback?> GetFeedbackByIdAsync(int id)
         {
             return await _context.QualityFeedbacks
-                .Include(f => f.Item)
                 .Include(f => f.User)
                 .Include(f => f.Order)
                 .FirstOrDefaultAsync(f => f.Id == id);
@@ -49,7 +47,6 @@ namespace CentralKitchen_Repositories.Repositories
         public async Task<List<QualityFeedback>> GetFeedbacksByStatusAsync(string status)
         {
             return await _context.QualityFeedbacks
-                .Include(f => f.Item)
                 .Include(f => f.User)
                 .Include(f => f.Order)
                 .Where(f => f.Status == status)

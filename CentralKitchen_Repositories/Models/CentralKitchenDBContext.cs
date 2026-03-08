@@ -273,6 +273,7 @@ public partial class CentralKitchenDBContext : DbContext
             entity.HasOne(d => d.Order).WithMany()
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("fk_feedback_order");
+        });
 
         modelBuilder.Entity<Recipe>(entity =>
         {

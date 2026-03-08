@@ -65,6 +65,52 @@ namespace CentralKitchen_Repositories.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> ApproveAndUpdateInventoryAsync(int id)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var request = await _context.MaterialRequests
+                    .Include(mr => mr.MaterialRequestLines)
+                    .FirstOrDefaultAsync(mr => mr.Id == id);
+
+                if (request == null || request.Status != "Pending")
+                    return false;
+
+                request.Status = "Approved";
+
+                foreach (var line in request.MaterialRequestLines)
+                {
+                    var inventory = await _context.Inventories
+                        .FirstOrDefaultAsync(inv => inv.ItemId == line.ItemId);
+
+                    if (inventory == null)
+                        continue;
+
+                    inventory.Quantity = (inventory.Quantity ?? 0) + line.RequestedQuantity;
+
+                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    {
+                        InventoryId = inventory.Id,
+                        TxType = "MaterialRequest",
+                        Quantity = line.RequestedQuantity,
+                        ReferenceType = "MaterialRequest",
+                        ReferenceId = request.Id,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+        }
+
         /// <summary>
         /// Get ingredients needed for an order (from recipes) with current stock
         /// </summary>
