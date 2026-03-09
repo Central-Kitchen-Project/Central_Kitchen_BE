@@ -28,6 +28,7 @@ builder.Services.AddDbContext <CentralKitchenDBContext> (options =>
 // Dependency Injection
 builder.Services.AddScoped<LoginRepo>();
 builder.Services.AddScoped<OrderRepo>();
+builder.Services.AddScoped<CentralKitchen_Repositories.Repositories.UserRepo>();
 builder.Services.AddScoped<MaterialRequestRepo>();
 builder.Services.AddScoped<ItemRepo>();
 builder.Services.AddScoped<ILoginService, LoginService>();
@@ -39,6 +40,7 @@ builder.Services.AddScoped<InventoryRepo>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<InventoryTransactionRepo>();
 builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
+builder.Services.AddScoped<IUserService, UserService>();
 var configuration = builder.Configuration;
 // 1. Đăng ký IJwtService
 builder.Services.AddScoped<IJwtService, JwtService>();
