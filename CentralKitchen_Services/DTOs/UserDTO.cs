@@ -32,10 +32,10 @@ namespace CentralKitchen_Services.DTOs
 
     public class UpdateUserDTO
     {
-        public string Username { get; set; }
-        public string Email { get; set; }
+        public string? Username { get; set; }
+        public string? Email { get; set; }
         public int? RoleId { get; set; }
-        public string Password { get; set; }  // Optional: chỉ cập nhật nếu có giá trị
+        public string? Password { get; set; }
     }
 
     public class DashboardCountDTO

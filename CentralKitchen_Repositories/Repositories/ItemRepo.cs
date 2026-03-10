@@ -1,5 +1,6 @@
 using CentralKitchen_Repositories.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -76,6 +77,76 @@ namespace CentralKitchen_Repositories.Repositories
                 })
                 .OrderBy(c => c.Category)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Create a new item and automatically generate inventory records
+        /// (quantity 0) for every user who manages inventory.
+        /// </summary>
+        public async Task<Item?> CreateItemWithInventoryAsync(Item item)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                item.CreatedAt = DateTime.Now;
+                _context.Items.Add(item);
+                await _context.SaveChangesAsync();
+
+                // Get distinct (ManagedBy, LocationId) pairs from existing inventory
+                var inventoryOwners = await _context.Inventories
+                    .Where(inv => inv.ManagedBy != null)
+                    .Select(inv => new { inv.ManagedBy, inv.LocationId })
+                    .Distinct()
+                    .ToListAsync();
+
+                if (inventoryOwners.Count == 0)
+                {
+                    // Fallback: create one record per user with SupplyCoordinator or FranchiseStore role
+                    var defaultLocation = await _context.Locations.FirstOrDefaultAsync();
+                    var locationId = defaultLocation?.Id ?? 1;
+
+                    var users = await _context.Users
+                        .Include(u => u.Role)
+                        .Where(u => u.Role.RoleName == "SupplyCoordinator"
+                            || u.Role.RoleName == "FranchiseStore")
+                        .Select(u => u.Id)
+                        .ToListAsync();
+
+                    foreach (var userId in users)
+                    {
+                        _context.Inventories.Add(new Inventory
+                        {
+                            ItemId = item.Id,
+                            LocationId = locationId,
+                            Quantity = 0,
+                            ManagedBy = userId
+                        });
+                    }
+                }
+                else
+                {
+                    foreach (var owner in inventoryOwners)
+                    {
+                        _context.Inventories.Add(new Inventory
+                        {
+                            ItemId = item.Id,
+                            LocationId = owner.LocationId,
+                            Quantity = 0,
+                            ManagedBy = owner.ManagedBy
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return await GetItemByIdAsync(item.Id);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return null;
+            }
         }
     }
 

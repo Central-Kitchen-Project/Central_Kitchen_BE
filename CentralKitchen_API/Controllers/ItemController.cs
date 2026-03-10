@@ -71,5 +71,20 @@ namespace CentralKitchen_API.Controllers
             var categories = await _itemService.GetCategoriesWithCountAsync();
             return Ok(new { Status = "Success", Data = categories });
         }
+
+        /// <summary>
+        /// Create a new item. Inventory records (quantity 0) are automatically
+        /// created for every supply coordinator and franchise store user.
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateItem([FromBody] CreateItemDTO dto)
+        {
+            var item = await _itemService.CreateItemAsync(dto);
+            if (item == null)
+            {
+                return BadRequest(new { Error = "IT40002", Message = "Failed to create item. Item name is required." });
+            }
+            return CreatedAtAction(nameof(GetItemById), new { id = item.Id }, new { Status = "Success", Data = item });
+        }
     }
 }
