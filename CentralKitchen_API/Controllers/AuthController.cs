@@ -1,8 +1,10 @@
 ﻿using CentralKitchen_Services.DTOs;
+using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
 using CentralKitchen_Services.Services;
-using CentralKitchen_Services.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CentralKitchen_API.Controllers
 {
@@ -107,6 +109,34 @@ namespace CentralKitchen_API.Controllers
                 Status = "Success",
                 Message = "Đổi mật khẩu thành công!"
             });
+        }
+        [HttpGet("current-user")]
+        [Authorize] // Bắt buộc phải có Token hợp lệ mới gọi được API này
+        public IActionResult GetCurrentUser()
+        {
+            // HttpContext.User chứa danh sách Claims được trích xuất từ Token gửi kèm Request
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            if (identity != null)
+            {
+                // Lấy Id từ ClaimTypes.NameIdentifier (đã set trong JwtService)
+                var userId = identity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                // Lấy RoleId từ ClaimTypes.Role
+                var roleId = identity.FindFirst(ClaimTypes.Role)?.Value;
+
+                return Ok(new
+                {
+                    Status = "Success",
+                    Data = new
+                    {
+                        UserId = userId,
+                        RoleId = roleId
+                    }
+                });
+            }
+
+            return Unauthorized(new { Message = "Không thể xác thực người dùng." });
         }
 
     }
