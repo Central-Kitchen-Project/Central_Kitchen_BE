@@ -91,8 +91,8 @@ namespace CentralKitchen_Services.Services
             if (string.IsNullOrEmpty(dto.Status) || !ValidStatuses.Contains(dto.Status))
                 return false;
 
-            if (dto.Status == "Approved")
-                return await _repo.ApproveAndUpdateInventoryAsync(id);
+            if (dto.Status == "Approved" || dto.Status == "Fulfilled")
+                return await _repo.ApproveAndUpdateInventoryAsync(id, dto.Status);
 
             return await _repo.UpdateStatusAsync(id, dto.Status);
         }
