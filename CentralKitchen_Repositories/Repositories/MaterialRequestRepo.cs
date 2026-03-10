@@ -65,7 +65,7 @@ namespace CentralKitchen_Repositories.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> ApproveAndUpdateInventoryAsync(int id)
+        public async Task<bool> ApproveAndUpdateInventoryAsync(int id, string targetStatus)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -74,30 +74,63 @@ namespace CentralKitchen_Repositories.Repositories
                     .Include(mr => mr.MaterialRequestLines)
                     .FirstOrDefaultAsync(mr => mr.Id == id);
 
-                if (request == null || request.Status != "Pending")
+                if (request == null)
                     return false;
 
-                request.Status = "Approved";
+                // Check if inventory was already updated for this request
+                var alreadyUpdated = await _context.InventoryTransactions
+                    .AnyAsync(t => t.ReferenceType == "MaterialRequest" && t.ReferenceId == id);
 
-                foreach (var line in request.MaterialRequestLines)
+                request.Status = targetStatus;
+
+                if (!alreadyUpdated)
                 {
-                    var inventory = await _context.Inventories
-                        .FirstOrDefaultAsync(inv => inv.ItemId == line.ItemId);
+                    var requestedByUserId = request.RequestedByUserId;
 
-                    if (inventory == null)
-                        continue;
-
-                    inventory.Quantity = (inventory.Quantity ?? 0) + line.RequestedQuantity;
-
-                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    foreach (var line in request.MaterialRequestLines)
                     {
-                        InventoryId = inventory.Id,
-                        TxType = "MaterialRequest",
-                        Quantity = line.RequestedQuantity,
-                        ReferenceType = "MaterialRequest",
-                        ReferenceId = request.Id,
-                        CreatedAt = DateTime.Now
-                    });
+                        // Find inventory managed by the supply coordinator who sent the request
+                        var inventory = await _context.Inventories
+                            .FirstOrDefaultAsync(inv => inv.ItemId == line.ItemId
+                                && inv.ManagedBy == requestedByUserId);
+
+                        if (inventory == null)
+                        {
+                            // Get the location from any existing inventory for this item,
+                            // or fall back to the first location
+                            var existingInventory = await _context.Inventories
+                                .FirstOrDefaultAsync(inv => inv.ItemId == line.ItemId);
+
+                            var locationId = existingInventory?.LocationId
+                                ?? (await _context.Locations.FirstOrDefaultAsync())?.Id
+                                ?? 0;
+
+                            if (locationId == 0)
+                                return false;
+
+                            inventory = new Inventory
+                            {
+                                ItemId = line.ItemId,
+                                LocationId = locationId,
+                                Quantity = 0,
+                                ManagedBy = requestedByUserId
+                            };
+                            _context.Inventories.Add(inventory);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        inventory.Quantity = (inventory.Quantity ?? 0) + line.RequestedQuantity;
+
+                        _context.InventoryTransactions.Add(new InventoryTransaction
+                        {
+                            InventoryId = inventory.Id,
+                            TxType = "MaterialRequest",
+                            Quantity = line.RequestedQuantity,
+                            ReferenceType = "MaterialRequest",
+                            ReferenceId = request.Id,
+                            CreatedAt = DateTime.Now
+                        });
+                    }
                 }
 
                 await _context.SaveChangesAsync();
