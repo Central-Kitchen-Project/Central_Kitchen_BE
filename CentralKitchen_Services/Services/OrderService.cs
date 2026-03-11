@@ -43,42 +43,6 @@ namespace CentralKitchen_Services.Services
             if (dto.Items == null || dto.Items.Count == 0)
                 return new CreateOrderResultDTO { Success = false, Message = "Danh sách sản phẩm không được để trống." };
 
-            // 1. Lấy danh sách ItemIds
-            var itemIds = dto.Items.Select(i => i.ItemId).ToList();
-
-            // 2. Kiểm tra tồn kho
-            var inventory = await _orderRepo.GetInventoryByItemIdsAsync(itemIds);
-            var itemNames = await _orderRepo.GetItemNamesByIdsAsync(itemIds);
-
-            var insufficientItems = new List<InsufficientItemDTO>();
-            foreach (var item in dto.Items)
-            {
-                var available = inventory.ContainsKey(item.ItemId) ? inventory[item.ItemId] : 0;
-                if (available < item.Quantity)
-                {
-                    insufficientItems.Add(new InsufficientItemDTO
-                    {
-                        ItemId = item.ItemId,
-                        ItemName = itemNames.ContainsKey(item.ItemId) ? itemNames[item.ItemId] : "Unknown",
-                        RequestedQuantity = item.Quantity,
-                        AvailableQuantity = available,
-                        ShortageQuantity = item.Quantity - available
-                    });
-                }
-            }
-
-            // 3. Nếu thiếu hàng → trả về danh sách thiếu
-            if (insufficientItems.Count > 0)
-            {
-                return new CreateOrderResultDTO
-                {
-                    Success = false,
-                    Message = "Không đủ tồn kho để tạo đơn hàng.",
-                    InsufficientItems = insufficientItems
-                };
-            }
-
-            // 4. Đủ hàng → tạo order
             var order = new Order
             {
                 UserId = dto.UserId,

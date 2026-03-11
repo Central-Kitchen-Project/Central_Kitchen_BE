@@ -1,4 +1,4 @@
-﻿using CentralKitchen_Repositories.Models;
+using CentralKitchen_Repositories.Models;
 using CentralKitchen_Repositories.Repository;
 using CentralKitchen_Repositories.Repositories;
 using CentralKitchen_Services.IServices;
@@ -43,6 +43,8 @@ builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionSer
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<RecipeRepo>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<CentralKitchen_Repositories.Repositories.RoleRepo>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 var configuration = builder.Configuration;
 // 1. Đăng ký IJwtService
 builder.Services.AddScoped<IJwtService, JwtService>();
