@@ -1,4 +1,4 @@
-using CentralKitchen_Repositories.Models;
+﻿using CentralKitchen_Repositories.Models;
 using CentralKitchen_Repositories.Repositories;
 using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
@@ -84,6 +84,22 @@ namespace CentralKitchen_Services.Services
                     Unit = r.IngredientItem?.Unit ?? ""
                 }).ToList() ?? new List<IngredientDTO>()
             };
+        }
+
+        public async Task<bool> CreateRecipeAsync(CreateFinishedProductDto dto)
+        {
+            if (!await _itemRepo.ItemExistsAsync(dto.FinishedItemId))
+                return false;
+
+            var recipeEntities = dto.Ingredients.Select(ing => new Recipe
+            {
+                FinishedItemId = dto.FinishedItemId,
+                IngredientItemId = ing.IngredientItemId,
+                Quantity = ing.Quantity
+            }).ToList();
+
+            await _itemRepo.AddRecipesAsync(recipeEntities);
+            return true;
         }
     }
 }
