@@ -2,6 +2,7 @@ using CentralKitchen_Repositories.Models;
 using CentralKitchen_Repositories.Repositories;
 using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +44,26 @@ namespace CentralKitchen_Services.Services
                 Category = r.Category,
                 Count = r.Count
             }).ToList();
+        }
+
+        public async Task<ProductCatalogItemDTO?> CreateItemAsync(CreateItemDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.ItemName))
+                return null;
+
+            var item = new Item
+            {
+                ItemName = dto.ItemName,
+                Unit = dto.Unit,
+                ItemType = dto.ItemType,
+                Description = dto.Description,
+                Price = dto.Price,
+                Category = dto.Category
+            };
+
+            var created = await _itemRepo.CreateItemWithInventoryAsync(item);
+            if (created == null) return null;
+            return MapToDTO(created);
         }
 
         private ProductCatalogItemDTO MapToDTO(Item item)

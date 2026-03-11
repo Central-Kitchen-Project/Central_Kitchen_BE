@@ -10,5 +10,6 @@ namespace CentralKitchen_Services.IServices
         Task<ProductCatalogItemDTO?> GetItemByIdAsync(int id);
         Task<List<string>> GetCategoriesAsync();
         Task<List<CategoryDTO>> GetCategoriesWithCountAsync();
+        Task<ProductCatalogItemDTO?> CreateItemAsync(CreateItemDTO dto);
     }
 }
