@@ -141,5 +141,24 @@ namespace CentralKitchen_API.Controllers
 
             return StatusCode(500, "Có lỗi xảy ra trong quá trình cập nhật nguyên liệu.");
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteItem(int id)
+        {
+            var result = await _itemService.SoftDeleteItemAsync(id);
+
+            if (!result)
+            {
+                return NotFound(new
+                {
+                    message = $"Không tìm thấy sản phẩm có ID {id} hoặc sản phẩm đã bị xóa trước đó."
+                });
+            }
+
+            return Ok(new
+            {
+                message = $"Sản phẩm ID {id} đã được chuyển sang trạng thái ngưng hoạt động."
+            });
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace CentralKitchen_Services.IServices
         Task<ProductCatalogItemDTO?> CreateItemAsync(CreateItemDTO dto);
         Task<bool> CreateRecipeAsync(CreateFinishedProductDto dto);
         Task<bool> UpdateItemAsync(int id, ItemUpdateDto dto);
+        Task<bool> SoftDeleteItemAsync(int id);
     }
 }
 

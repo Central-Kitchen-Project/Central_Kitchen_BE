@@ -119,5 +119,18 @@ namespace CentralKitchen_Services.Services
             return true;
         }
 
+        public async Task<bool> SoftDeleteItemAsync(int id)
+        {
+            var item = await _itemRepo.GetItemByIdAsync(id);
+
+        
+            if (item == null ) return false;
+
+            // Cập nhật trạng thái
+            item.IsActive = false;
+
+            await _itemRepo.UpdateAsync(item);
+            return true;
+        }
     }
 }
