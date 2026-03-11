@@ -101,5 +101,23 @@ namespace CentralKitchen_Services.Services
             await _itemRepo.AddRecipesAsync(recipeEntities);
             return true;
         }
+        public async Task<bool> UpdateItemAsync(int id, ItemUpdateDto dto)
+        {
+            var existingItem = await _itemRepo.GetItemByIdAsync(id);
+            if (existingItem == null) return false;
+
+            // Cập nhật các trường thông tin cơ bản
+            existingItem.ItemName = dto.ItemName;
+            existingItem.Unit = dto.Unit;
+            existingItem.ItemType = dto.ItemType;
+            existingItem.Description = dto.Description;
+            existingItem.Price = dto.Price;
+            existingItem.Category = dto.Category;
+            // created_at thường giữ nguyên không cập nhật
+
+            await _itemRepo.UpdateAsync(existingItem);
+            return true;
+        }
+
     }
 }
