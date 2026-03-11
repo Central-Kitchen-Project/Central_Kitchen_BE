@@ -1,5 +1,6 @@
 ﻿using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
+using CentralKitchen_Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentralKitchen_API.Controllers
@@ -9,10 +10,11 @@ namespace CentralKitchen_API.Controllers
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
-
-        public ItemController(IItemService itemService)
+        private readonly IRecipeService _recipeService;
+        public ItemController(IItemService itemService, IRecipeService recipeService)
         {
             _itemService = itemService;
+            _recipeService = recipeService;
         }
 
         /// <summary>
@@ -125,6 +127,19 @@ namespace CentralKitchen_API.Controllers
                 return NotFound(new { message = $"Không tìm thấy Item với ID {id}" });
 
             return Ok(new { message = "Cập nhật thông tin Item thành công" });
+        }
+        [HttpPut("update-ingredients")]
+        public async Task<IActionResult> UpdateIngredients([FromBody] UpdateRecipeDto dto)
+        {
+            if (dto == null || dto.FinishedItemId <= 0)
+                return BadRequest("Dữ liệu thành phẩm không hợp lệ.");
+
+            var result = await _recipeService.UpdateFinishedProductRecipeAsync(dto);
+
+            if (result)
+                return Ok(new { message = "Cập nhật danh sách nguyên liệu thành công." });
+
+            return StatusCode(500, "Có lỗi xảy ra trong quá trình cập nhật nguyên liệu.");
         }
     }
 }
