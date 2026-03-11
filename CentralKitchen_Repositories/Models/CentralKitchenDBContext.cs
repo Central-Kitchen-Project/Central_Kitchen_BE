@@ -147,7 +147,10 @@ public partial class CentralKitchenDBContext : DbContext
             entity.Property(e => e.Category)
                 .HasMaxLength(50)
                 .HasColumnName("category");
-        });
+            entity.Property(e => e.IsActive)
+                .HasColumnName("is_active")
+                .HasDefaultValue(true);
+                });
 
         modelBuilder.Entity<Location>(entity =>
         {

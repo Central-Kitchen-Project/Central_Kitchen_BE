@@ -148,6 +148,22 @@ namespace CentralKitchen_Repositories.Repositories
                 return null;
             }
         }
+        public async Task<bool> ItemExistsAsync(int itemId)
+        {
+            return await _context.Items.AnyAsync(x => x.Id == itemId);
+        }
+
+        public async Task AddRecipesAsync(List<Recipe> recipeList)
+        {
+            await _context.Recipes.AddRangeAsync(recipeList);
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateAsync(Item item)
+        {
+            _context.Items.Update(item);
+            await _context.SaveChangesAsync();
+        }
+
     }
 
     public class CategoryCountResult

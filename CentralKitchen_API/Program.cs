@@ -41,6 +41,8 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<InventoryTransactionRepo>();
 builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<RecipeRepo>();
+builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<CentralKitchen_Repositories.Repositories.RoleRepo>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 var configuration = builder.Configuration;

@@ -22,6 +22,7 @@ public partial class Item
     public string Category { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 

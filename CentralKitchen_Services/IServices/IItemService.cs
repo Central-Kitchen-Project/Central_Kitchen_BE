@@ -11,5 +11,9 @@ namespace CentralKitchen_Services.IServices
         Task<List<string>> GetCategoriesAsync();
         Task<List<CategoryDTO>> GetCategoriesWithCountAsync();
         Task<ProductCatalogItemDTO?> CreateItemAsync(CreateItemDTO dto);
+        Task<bool> CreateRecipeAsync(CreateFinishedProductDto dto);
+        Task<bool> UpdateItemAsync(int id, ItemUpdateDto dto);
+        Task<bool> SoftDeleteItemAsync(int id);
     }
 }
+

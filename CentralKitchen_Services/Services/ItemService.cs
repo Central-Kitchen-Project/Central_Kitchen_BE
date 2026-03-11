@@ -1,4 +1,4 @@
-using CentralKitchen_Repositories.Models;
+﻿using CentralKitchen_Repositories.Models;
 using CentralKitchen_Repositories.Repositories;
 using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
@@ -84,6 +84,53 @@ namespace CentralKitchen_Services.Services
                     Unit = r.IngredientItem?.Unit ?? ""
                 }).ToList() ?? new List<IngredientDTO>()
             };
+        }
+
+        public async Task<bool> CreateRecipeAsync(CreateFinishedProductDto dto)
+        {
+            if (!await _itemRepo.ItemExistsAsync(dto.FinishedItemId))
+                return false;
+
+            var recipeEntities = dto.Ingredients.Select(ing => new Recipe
+            {
+                FinishedItemId = dto.FinishedItemId,
+                IngredientItemId = ing.IngredientItemId,
+                Quantity = ing.Quantity
+            }).ToList();
+
+            await _itemRepo.AddRecipesAsync(recipeEntities);
+            return true;
+        }
+        public async Task<bool> UpdateItemAsync(int id, ItemUpdateDto dto)
+        {
+            var existingItem = await _itemRepo.GetItemByIdAsync(id);
+            if (existingItem == null) return false;
+
+            // Cập nhật các trường thông tin cơ bản
+            existingItem.ItemName = dto.ItemName;
+            existingItem.Unit = dto.Unit;
+            existingItem.ItemType = dto.ItemType;
+            existingItem.Description = dto.Description;
+            existingItem.Price = dto.Price;
+            existingItem.Category = dto.Category;
+            // created_at thường giữ nguyên không cập nhật
+
+            await _itemRepo.UpdateAsync(existingItem);
+            return true;
+        }
+
+        public async Task<bool> SoftDeleteItemAsync(int id)
+        {
+            var item = await _itemRepo.GetItemByIdAsync(id);
+
+        
+            if (item == null ) return false;
+
+            // Cập nhật trạng thái
+            item.IsActive = false;
+
+            await _itemRepo.UpdateAsync(item);
+            return true;
         }
     }
 }

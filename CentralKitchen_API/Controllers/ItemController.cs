@@ -1,5 +1,6 @@
-using CentralKitchen_Services.DTOs;
+﻿using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
+using CentralKitchen_Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentralKitchen_API.Controllers
@@ -9,10 +10,11 @@ namespace CentralKitchen_API.Controllers
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
-
-        public ItemController(IItemService itemService)
+        private readonly IRecipeService _recipeService;
+        public ItemController(IItemService itemService, IRecipeService recipeService)
         {
             _itemService = itemService;
+            _recipeService = recipeService;
         }
 
         /// <summary>
@@ -85,6 +87,78 @@ namespace CentralKitchen_API.Controllers
                 return BadRequest(new { Error = "IT40002", Message = "Failed to create item. Item name is required." });
             }
             return CreatedAtAction(nameof(GetItemById), new { id = item.Id }, new { Status = "Success", Data = item });
+        }
+
+        [HttpPost("create-recipe")]
+        public async Task<IActionResult> CreateFinishedProductRecipe( [FromBody] CreateFinishedProductDto dto)
+        {
+            if (dto == null || !dto.Ingredients.Any())
+                return BadRequest("Dữ liệu nguyên liệu không được để trống.");
+
+            try
+            {
+                // userId có thể dùng để kiểm tra quyền hoặc lưu log người tạo ở đây
+                var success = await _itemService.CreateRecipeAsync(dto);
+
+                if (!success)
+                    return NotFound($"Không tìm thấy thành phẩm với ID {dto.FinishedItemId}");
+
+                return Ok(new
+                {
+                    Message = "Đã lưu công thức thành công",
+                    //CreatedBy = userId,
+                    FinishedItemId = dto.FinishedItemId,
+                    TotalIngredients = dto.Ingredients.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateItem(int id, [FromBody] ItemUpdateDto dto)
+        {
+            if (dto == null) return BadRequest("Dữ liệu không hợp lệ");
+
+            var result = await _itemService.UpdateItemAsync(id, dto);
+
+            if (!result)
+                return NotFound(new { message = $"Không tìm thấy Item với ID {id}" });
+
+            return Ok(new { message = "Cập nhật thông tin Item thành công" });
+        }
+        [HttpPut("update-ingredients")]
+        public async Task<IActionResult> UpdateIngredients([FromBody] UpdateRecipeDto dto)
+        {
+            if (dto == null || dto.FinishedItemId <= 0)
+                return BadRequest("Dữ liệu thành phẩm không hợp lệ.");
+
+            var result = await _recipeService.UpdateFinishedProductRecipeAsync(dto);
+
+            if (result)
+                return Ok(new { message = "Cập nhật danh sách nguyên liệu thành công." });
+
+            return StatusCode(500, "Có lỗi xảy ra trong quá trình cập nhật nguyên liệu.");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteItem(int id)
+        {
+            var result = await _itemService.SoftDeleteItemAsync(id);
+
+            if (!result)
+            {
+                return NotFound(new
+                {
+                    message = $"Không tìm thấy sản phẩm có ID {id} hoặc sản phẩm đã bị xóa trước đó."
+                });
+            }
+
+            return Ok(new
+            {
+                message = $"Sản phẩm ID {id} đã được chuyển sang trạng thái ngưng hoạt động."
+            });
         }
     }
 }
