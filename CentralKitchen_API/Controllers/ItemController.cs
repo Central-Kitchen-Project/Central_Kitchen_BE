@@ -1,4 +1,4 @@
-using CentralKitchen_Services.DTOs;
+﻿using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 
@@ -85,6 +85,34 @@ namespace CentralKitchen_API.Controllers
                 return BadRequest(new { Error = "IT40002", Message = "Failed to create item. Item name is required." });
             }
             return CreatedAtAction(nameof(GetItemById), new { id = item.Id }, new { Status = "Success", Data = item });
+        }
+
+        [HttpPost("create-recipe")]
+        public async Task<IActionResult> CreateFinishedProductRecipe( [FromBody] CreateFinishedProductDto dto)
+        {
+            if (dto == null || !dto.Ingredients.Any())
+                return BadRequest("Dữ liệu nguyên liệu không được để trống.");
+
+            try
+            {
+                // userId có thể dùng để kiểm tra quyền hoặc lưu log người tạo ở đây
+                var success = await _itemService.CreateRecipeAsync(dto);
+
+                if (!success)
+                    return NotFound($"Không tìm thấy thành phẩm với ID {dto.FinishedItemId}");
+
+                return Ok(new
+                {
+                    Message = "Đã lưu công thức thành công",
+                    //CreatedBy = userId,
+                    FinishedItemId = dto.FinishedItemId,
+                    TotalIngredients = dto.Ingredients.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
         }
     }
 }
