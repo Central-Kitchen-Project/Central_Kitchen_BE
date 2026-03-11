@@ -114,5 +114,17 @@ namespace CentralKitchen_API.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateItem(int id, [FromBody] ItemUpdateDto dto)
+        {
+            if (dto == null) return BadRequest("Dữ liệu không hợp lệ");
+
+            var result = await _itemService.UpdateItemAsync(id, dto);
+
+            if (!result)
+                return NotFound(new { message = $"Không tìm thấy Item với ID {id}" });
+
+            return Ok(new { message = "Cập nhật thông tin Item thành công" });
+        }
     }
 }
