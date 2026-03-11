@@ -158,6 +158,11 @@ namespace CentralKitchen_Repositories.Repositories
             await _context.Recipes.AddRangeAsync(recipeList);
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateAsync(Item item)
+        {
+            _context.Items.Update(item);
+            await _context.SaveChangesAsync();
+        }
 
     }
 
