@@ -9,5 +9,6 @@ namespace CentralKitchen_Services.DTOs
     public class UpdateOrderStatusDTO
     {
         public string Status { get; set; }
+        public int? ApprovedBy { get; set; }
     }
 }

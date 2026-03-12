@@ -51,7 +51,11 @@ namespace CentralKitchen_Repositories.Repositories
 
         public async Task<bool> UpdateOrderAsync(Order order)
         {
-            _context.Orders.Update(order);
+            _context.Entry(order).Property(o => o.Status).IsModified = true;
+            if (order.ApprovedBy.HasValue)
+            {
+                _context.Entry(order).Property(o => o.ApprovedBy).IsModified = true;
+            }
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -100,11 +104,10 @@ namespace CentralKitchen_Repositories.Repositories
 
             if (inventory == null)
             {
-                // Tạo mới nếu chưa có record inventory cho item này của user
                 inventory = new Inventory
                 {
                     ItemId = itemId,
-                    LocationId = 1, // Mặc định kho chính
+                    LocationId = 1,
                     ManagedBy = userId,
                     Quantity = quantityChange > 0 ? quantityChange : 0
                 };
@@ -112,8 +115,9 @@ namespace CentralKitchen_Repositories.Repositories
             }
             else
             {
-                inventory.Quantity = (inventory.Quantity ?? 0) + quantityChange;
-                if (inventory.Quantity < 0) inventory.Quantity = 0;
+                var newQuantity = (inventory.Quantity ?? 0) + quantityChange;
+                if (newQuantity < 0) newQuantity = 0;
+                inventory.Quantity = newQuantity;
             }
 
             return await _context.SaveChangesAsync() > 0;
@@ -153,6 +157,20 @@ namespace CentralKitchen_Repositories.Repositories
                 .Where(u => u.Role.RoleName == roleName)
                 .Select(u => u.Id)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Get inventory quantities for specific items managed by a specific user
+        /// </summary>
+        public async Task<Dictionary<int, decimal>> GetInventoryByUserAndItemsAsync(List<int> itemIds, int userId)
+        {
+            return await _context.Inventories
+                .Where(inv => itemIds.Contains(inv.ItemId) && inv.ManagedBy == userId)
+                .GroupBy(inv => inv.ItemId)
+                .ToDictionaryAsync(
+                    g => g.Key,
+                    g => g.Sum(inv => inv.Quantity ?? 0)
+                );
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
