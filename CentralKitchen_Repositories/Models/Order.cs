@@ -15,9 +15,13 @@ public partial class Order
 
     public string Status { get; set; }
 
+    public int? ApprovedBy { get; set; }
+
     public virtual ICollection<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
 
     public virtual ICollection<MaterialRequest> MaterialRequests { get; set; } = new List<MaterialRequest>();
 
     public virtual User User { get; set; }
+
+    public virtual User ApprovedByUser { get; set; }
 }

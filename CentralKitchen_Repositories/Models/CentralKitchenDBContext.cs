@@ -183,11 +183,17 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("status");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ApprovedBy).HasColumnName("approved_by");
 
             entity.HasOne(d => d.User).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_orders_user");
+
+            entity.HasOne(d => d.ApprovedByUser).WithMany()
+                .HasForeignKey(d => d.ApprovedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_orders_approved_by");
         });
 
         modelBuilder.Entity<OrderLine>(entity =>
