@@ -13,6 +13,7 @@ namespace CentralKitchen_Services.DTOs
         public string Category { get; set; }       // Quality, Packaging, Delivery
         public string Subject { get; set; }
         public string Description { get; set; }
+        public int? Rating { get; set; }            // 1-5 stars
     }
 
     public class UpdateFeedbackStatusDTO
@@ -31,6 +32,7 @@ namespace CentralKitchen_Services.DTOs
         public string Subject { get; set; }
         public string Description { get; set; }
         public string Status { get; set; }
+        public int? Rating { get; set; }
         public DateTime? FeedbackDate { get; set; }
     }
 }

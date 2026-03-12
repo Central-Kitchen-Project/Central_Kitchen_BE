@@ -54,6 +54,10 @@ namespace CentralKitchen_Services.Services
             if (string.IsNullOrWhiteSpace(dto.Category) || !ValidCategories.Contains(dto.Category))
                 return null;
 
+            // Validate rating (1-5)
+            if (dto.Rating.HasValue && (dto.Rating.Value < 1 || dto.Rating.Value > 5))
+                return null;
+
             var feedback = new QualityFeedback
             {
                 UserId = dto.UserId,
@@ -61,6 +65,7 @@ namespace CentralKitchen_Services.Services
                 Category = dto.Category,
                 Subject = dto.Subject,
                 Description = dto.Description,
+                Rating = dto.Rating,
                 Status = "Received",
                 FeedbackDate = DateTime.Now
             };
@@ -100,6 +105,7 @@ namespace CentralKitchen_Services.Services
                 Subject = feedback.Subject,
                 Description = feedback.Description,
                 Status = feedback.Status,
+                Rating = feedback.Rating,
                 FeedbackDate = feedback.FeedbackDate
             };
         }

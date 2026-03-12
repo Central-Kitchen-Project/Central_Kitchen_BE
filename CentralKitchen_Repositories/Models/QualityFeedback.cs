@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using System;
 using System.Collections.Generic;
 
@@ -21,6 +21,8 @@ public partial class QualityFeedback
     public string Status { get; set; }
 
     public DateTime? FeedbackDate { get; set; }
+
+    public int? Rating { get; set; }  // 1-5 stars
 
     public virtual User User { get; set; }
 
