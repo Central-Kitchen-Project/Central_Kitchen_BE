@@ -82,9 +82,17 @@ namespace CentralKitchen_API.Controllers
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateMaterialRequestStatusDTO dto)
         {
             var result = await _service.UpdateMaterialRequestStatusAsync(id, dto);
-            if (!result)
+            if (!result.Success)
             {
-                return BadRequest(new { Error = "MR40003", Message = "C?p nh?t tr?ng thái th?t b?i." });
+                if (result.MissingItems != null && result.MissingItems.Count > 0)
+                {
+                    return BadRequest(new { 
+                        Error = "MR40004", 
+                        Message = result.Message,
+                        MissingItems = result.MissingItems
+                    });
+                }
+                return BadRequest(new { Error = "MR40003", Message = result.Message ?? "C?p nh?t tr?ng thái th?t b?i." });
             }
             return Ok(new { Status = "Success", Message = "C?p nh?t tr?ng thái yêu c?u v?t t? thành công." });
         }

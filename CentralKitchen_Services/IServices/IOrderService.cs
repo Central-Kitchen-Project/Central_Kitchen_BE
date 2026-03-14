@@ -12,7 +12,7 @@ namespace CentralKitchen_Services.IServices
         Task<List<OrderResponseDTO>> GetAllOrdersAsync();
         Task<OrderResponseDTO?> GetOrderByIdAsync(int id);
         Task<CreateOrderResultDTO> CreateOrderAsync(CreateOrderDTO dto);
-        Task<bool> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO dto);
+        Task<StatusUpdateResultDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO dto);
         Task<bool> DeleteOrderAsync(int id);
     }
 }
