@@ -15,7 +15,7 @@ namespace CentralKitchen_Services.Services
 
         private static readonly List<string> ValidStatuses = new List<string>
         {
-            "Pending", "Approved", "Rejected", "Fulfilled"
+            "Pending", "Approved", "Processing", "Rejected", "Fulfilled"
         };
 
         public MaterialRequestService(MaterialRequestRepo repo)
@@ -86,15 +86,24 @@ namespace CentralKitchen_Services.Services
             return MapToResponseDTO(request);
         }
 
-        public async Task<bool> UpdateMaterialRequestStatusAsync(int id, UpdateMaterialRequestStatusDTO dto)
+        public async Task<StatusUpdateResultDTO> UpdateMaterialRequestStatusAsync(int id, UpdateMaterialRequestStatusDTO dto)
         {
             if (string.IsNullOrEmpty(dto.Status) || !ValidStatuses.Contains(dto.Status))
-                return false;
+                return new StatusUpdateResultDTO { Success = false, Message = "Tr?ng thái không h?p l?." };
 
             if (dto.Status == "Approved" || dto.Status == "Fulfilled")
-                return await _repo.ApproveAndUpdateInventoryAsync(id, dto.Status);
+            {
+                var repoResult = await _repo.ApproveAndUpdateInventoryAsync(id, dto.Status);
+                return new StatusUpdateResultDTO 
+                { 
+                    Success = repoResult.Success, 
+                    Message = repoResult.Message, 
+                    MissingItems = repoResult.MissingList 
+                };
+            }
 
-            return await _repo.UpdateStatusAsync(id, dto.Status);
+            var updated = await _repo.UpdateStatusAsync(id, dto.Status);
+            return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
         }
 
         private MaterialRequestResponseDTO MapToResponseDTO(MaterialRequest mr)

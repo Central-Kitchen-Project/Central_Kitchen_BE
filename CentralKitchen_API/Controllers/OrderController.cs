@@ -73,9 +73,17 @@ namespace CentralKitchen_API.Controllers
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDTO dto)
         {
             var result = await _orderService.UpdateOrderStatusAsync(id, dto);
-            if (!result)
+            if (!result.Success)
             {
-                return BadRequest(new { Error = "OR40003", Message = "Cập nhật trạng thái thất bại. Trạng thái không hợp lệ hoặc không tìm thấy đơn hàng." });
+                if (result.MissingItems.Count > 0)
+                {
+                    return BadRequest(new { 
+                        Error = "OR40005", 
+                        Message = result.Message,
+                        MissingItems = result.MissingItems
+                    });
+                }
+                return BadRequest(new { Error = "OR40003", Message = result.Message ?? "Cập nhật trạng thái thất bại. Trạng thái không hợp lệ hoặc không tìm thấy đơn hàng." });
             }
             return Ok(new { Status = "Success", Message = "Cập nhật trạng thái đơn hàng thành công." });
         }

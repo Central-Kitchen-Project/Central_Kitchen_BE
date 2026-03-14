@@ -17,7 +17,7 @@ namespace CentralKitchen_Services.Services
 		// Danh sách tr?ng thái h?p l?
 		private static readonly List<string> ValidStatuses = new List<string>
 		{
-			"Pending", "Approved", "Processing", "Completed", "Cancelled"
+			"Pending", "Approved", "Processing", "Completed", "Cancelled", "Rejected"
 		};
 
 		public OrderService(OrderRepo orderRepo)
@@ -64,39 +64,68 @@ namespace CentralKitchen_Services.Services
 			};
 		}
 
-		public async Task<bool> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO dto)
+		public async Task<StatusUpdateResultDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO dto)
 		{
 			if (string.IsNullOrEmpty(dto.Status) || !ValidStatuses.Contains(dto.Status))
-				return false;
+				return new StatusUpdateResultDTO { Success = false, Message = "Tr?ng thái không h?p l?." };
 
 			var order = await _orderRepo.GetOrderByIdAsync(id);
-			if (order == null) return false;
+			if (order == null) return new StatusUpdateResultDTO { Success = false, Message = "Không tìm th?y ??n hàng." };
 
 			// Prevent re-processing if order is already in the target status
-			if (order.Status == dto.Status) return false;
+			if (order.Status == dto.Status) return new StatusUpdateResultDTO { Success = false, Message = "??n hàng ?ã ? tr?ng thái này." };
 
 			// Save order line data before status update for inventory processing
 			var orderUserId = order.UserId;
-			var orderLines = order.OrderLines.Select(ol => new { ol.ItemId, ol.Quantity }).ToList();
-			var lineItems = orderLines.Select(ol => (ol.ItemId, ol.Quantity ?? 0m)).ToList();
+
+			var rawLineItems = new List<(int ItemId, decimal Quantity)>();
+			foreach (var ol in order.OrderLines)
+			{
+				var qty = ol.Quantity ?? 0m;
+				if (qty <= 0) continue;
+
+				if (ol.Item != null && ol.Item.RecipeFinishedItems != null && ol.Item.RecipeFinishedItems.Any())
+				{
+					// It's a finished product, convert to ingredients
+					foreach (var recipe in ol.Item.RecipeFinishedItems)
+					{
+						rawLineItems.Add((recipe.IngredientItemId, recipe.Quantity * qty));
+					}
+				}
+				else
+				{
+					// It's an ingredient or un-reciped item
+					rawLineItems.Add((ol.ItemId, qty));
+				}
+			}
+
+			// Aggregate grouped quantities
+			var lineItems = rawLineItems
+				.GroupBy(x => x.ItemId)
+				.Select(g => (ItemId: g.Key, Quantity: g.Sum(x => x.Quantity)))
+				.ToList();
 
 			// When accepting order (Approved), validate and deduct from the approving supply coordinator
 			if (dto.Status == "Approved")
 			{
 				if (!dto.ApprovedBy.HasValue || dto.ApprovedBy.Value <= 0)
-					return false;
+					return new StatusUpdateResultDTO { Success = false, Message = "Ng??i duy?t không h?p l?." };
 
 				var approverRole = await _orderRepo.GetUserRoleNameAsync(dto.ApprovedBy.Value);
 				if (approverRole != "SupplyCoordinator")
-					return false;
+					return new StatusUpdateResultDTO { Success = false, Message = "Ch? Supply Coordinator m?i ???c duy?t ??n hàng." };
 
-				var itemIds = order.OrderLines.Select(ol => ol.ItemId).Distinct().ToList();
+				var itemIds = lineItems.Select(l => l.ItemId).Distinct().ToList();
 				var approverInventory = await _orderRepo.GetInventoryByUserAndItemsAsync(itemIds, dto.ApprovedBy.Value);
 
+                var itemNames = await _orderRepo.GetItemNamesByIdsAsync(itemIds);
+
 				// Check that this supply coordinator has enough inventory
-				var totalNeededPerItem = order.OrderLines
-					.GroupBy(ol => ol.ItemId)
-					.ToDictionary(g => g.Key, g => g.Sum(ol => ol.Quantity ?? 0));
+				var totalNeededPerItem = lineItems
+					.GroupBy(l => l.ItemId)
+					.ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
+
+                var missingList = new List<string>();
 
 				foreach (var kvp in totalNeededPerItem)
 				{
@@ -104,8 +133,21 @@ namespace CentralKitchen_Services.Services
 
 					var available = approverInventory.ContainsKey(kvp.Key) ? approverInventory[kvp.Key] : 0;
 					if (available < kvp.Value)
-						return false;
+					{
+                        var name = itemNames.ContainsKey(kvp.Key) ? itemNames[kvp.Key] : $"Mã {kvp.Key}";
+                        missingList.Add($"Thi?u {name}: c?n {kvp.Value}, còn l?i {available}");
+					}
 				}
+
+                if (missingList.Count > 0)
+                {
+                    return new StatusUpdateResultDTO 
+                    { 
+                        Success = false, 
+                        Message = "Không ?? s? l??ng trong kho ?ê? duyê?t.", 
+                        MissingItems = missingList 
+                    };
+                }
 
 				// Deduct from the approving supply coordinator's inventory immediately
 				order.ApprovedBy = dto.ApprovedBy.Value;
@@ -116,13 +158,13 @@ namespace CentralKitchen_Services.Services
 				{
 					foreach (var line in lineItems)
 					{
-						if (line.Item2 <= 0) continue;
-						await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, dto.ApprovedBy.Value, -line.Item2);
-						await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, dto.ApprovedBy.Value, "order_out", line.Item2, id);
+						if (line.Quantity <= 0) continue;
+						await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, dto.ApprovedBy.Value, -line.Quantity);
+						await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, dto.ApprovedBy.Value, "order_out", line.Quantity, id);
 					}
 				}
 
-				return updated;
+				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
 			}
 
 			// When order is completed ? add inventory to the franchise store
@@ -136,11 +178,11 @@ namespace CentralKitchen_Services.Services
 					await AddInventoryToFranchise(orderUserId, lineItems, id);
 				}
 
-				return updated;
+				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
 			}
 
-			// When order is cancelled after approval ? restore inventory to the supply coordinator
-			if (dto.Status == "Cancelled" && order.ApprovedBy.HasValue)
+			// When order is cancelled or rejected after approval ? restore inventory to the supply coordinator
+			if ((dto.Status == "Cancelled" || dto.Status == "Rejected") && order.ApprovedBy.HasValue)
 			{
 				var supplierId = order.ApprovedBy.Value;
 				order.Status = dto.Status;
@@ -150,18 +192,19 @@ namespace CentralKitchen_Services.Services
 				{
 					foreach (var line in lineItems)
 					{
-						if (line.Item2 <= 0) continue;
-						await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, supplierId, line.Item2);
-						await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, supplierId, "order_cancel_restore", line.Item2, id);
+						if (line.Quantity <= 0) continue;
+						await _orderRepo.UpdateInventoryByUserAsync(line.ItemId, supplierId, line.Quantity);
+						await _orderRepo.CreateInventoryTransactionByUserAsync(line.ItemId, supplierId, "order_cancel_restore", line.Quantity, id);
 					}
 				}
 
-				return updated;
+				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
 			}
 
 			// For other status transitions (Processing, Cancelled from Pending, etc.)
 			order.Status = dto.Status;
-			return await _orderRepo.UpdateOrderAsync(order);
+			var finalUpdated = await _orderRepo.UpdateOrderAsync(order);
+			return new StatusUpdateResultDTO { Success = finalUpdated, Message = finalUpdated ? "Thành công" : "C?p nh?t l?i" };
 		}
 
 		/// <summary>

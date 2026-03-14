@@ -11,6 +11,6 @@ namespace CentralKitchen_Services.IServices
         Task<List<MaterialRequestResponseDTO>> GetAllMaterialRequestsAsync();
         Task<List<MaterialRequestResponseDTO>> GetMaterialRequestsByOrderIdAsync(int orderId);
         Task<MaterialRequestResponseDTO?> GetMaterialRequestByIdAsync(int id);
-        Task<bool> UpdateMaterialRequestStatusAsync(int id, UpdateMaterialRequestStatusDTO dto);
+        Task<StatusUpdateResultDTO> UpdateMaterialRequestStatusAsync(int id, UpdateMaterialRequestStatusDTO dto);
     }
 }
