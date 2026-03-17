@@ -17,7 +17,7 @@ namespace CentralKitchen_Services.Services
 		// Danh sách tr?ng thái h?p l?
 		private static readonly List<string> ValidStatuses = new List<string>
 		{
-			"Pending", "Approved", "Processing", "Completed", "Cancelled", "Rejected"
+			"Pending", "Confirmed", "Approved", "Processing", "Delivery", "Completed", "Cancelled", "Rejected"
 		};
 
 		public OrderService(OrderRepo orderRepo)
