@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace CentralKitchen_Services.Services
 {
@@ -15,8 +16,8 @@ namespace CentralKitchen_Services.Services
 
         private static readonly List<string> ValidStatuses = new List<string>
         {
-            "Pending", "Approved", "Processing", "Rejected", "Fulfilled"
-        };
+            "Pending", "Approved", "Processing", "Rejected", "Fulfilled", "Confirmed"
+		};
 
         public MaterialRequestService(MaterialRequestRepo repo)
         {
@@ -91,7 +92,7 @@ namespace CentralKitchen_Services.Services
             if (string.IsNullOrEmpty(dto.Status) || !ValidStatuses.Contains(dto.Status))
                 return new StatusUpdateResultDTO { Success = false, Message = "Tr?ng thái không h?p l?." };
 
-            if (dto.Status == "Approved" || dto.Status == "Fulfilled")
+            if (dto.Status == "Approved" || dto.Status == "Fulfilled" || dto.Status == "Confirmed")
             {
                 var repoResult = await _repo.ApproveAndUpdateInventoryAsync(id, dto.Status);
                 return new StatusUpdateResultDTO 
