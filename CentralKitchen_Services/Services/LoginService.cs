@@ -148,7 +148,7 @@ namespace CentralKitchen_Services.Services
 			}
 			await _context.SaveChangesAsync();
 
-			var resetLink = $"https://yourfrontend/reset-password?email={System.Net.WebUtility.UrlEncode(email)}&token={System.Net.WebUtility.UrlEncode(token)}";
+			var resetLink = $"http://localhost:5173/reset-password?email={email}&token={token}";
 			var subject = "CentralKitchen - Reset your password";
 			var body = $"<p>Hello {user.Username},</p><p>Click the link to reset your password:</p><p><a href=\"{resetLink}\">Reset Password</a></p>";
 
