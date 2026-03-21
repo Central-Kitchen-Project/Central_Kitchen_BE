@@ -1,4 +1,4 @@
-﻿using CentralKitchen_Repositories.Models;
+using CentralKitchen_Repositories.Models;
 using CentralKitchen_Repositories.Repository;
 using CentralKitchen_Services.DTOs;
 using CentralKitchen_Services.IServices;
@@ -102,7 +102,37 @@ namespace CentralKitchen_Services.Services
 				CreatedAt = DateTime.Now
 			};
 
-			return await _repository.RegisterUser(newUser);
+			var result = await _repository.RegisterUser(newUser);
+
+			// Auto-create inventory for Franchise Store Staff and Supply Coordinator
+			if (result)
+			{
+				var roleName = _context.Roles
+					.Where(r => r.Id == registerDto.RoleId)
+					.Select(r => r.RoleName)
+					.FirstOrDefault();
+
+				if (roleName == "FranchiseStore" || roleName == "SupplyCoordinator")
+				{
+					var activeItems = _context.Items.Where(i => i.IsActive).ToList();
+					var defaultLocationId = _context.Locations.Select(l => l.Id).FirstOrDefault();
+
+					foreach (var item in activeItems)
+					{
+						_context.Inventories.Add(new Inventory
+						{
+							ItemId = item.Id,
+							LocationId = defaultLocationId,
+							Quantity = 0,
+							ManagedBy = newUser.Id
+						});
+					}
+
+					await _context.SaveChangesAsync();
+				}
+			}
+
+			return result;
 		}
 
 		public async Task<bool> ChangePassword(ChangePasswordDTO changePasswordDto)
