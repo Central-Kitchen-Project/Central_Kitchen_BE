@@ -77,6 +77,7 @@ namespace CentralKitchen_Services.Services
                 Description = item.Description ?? "",
                 Unit = item.Unit ?? "",
                 Price = item.Price,
+                IsActive = item.IsActive,
                 Ingredients = item.RecipeFinishedItems?.Select(r => new IngredientDTO
                 {
                     Name = r.IngredientItem?.ItemName ?? "",

@@ -18,9 +18,9 @@ namespace CentralKitchen_Services.Services
             _repo = repo;
         }
 
-        public async Task<IEnumerable<InventoryTransactionDTO>> GetTransactionHistory()
+        public async Task<IEnumerable<InventoryTransactionDTO>> GetTransactionHistory(int? userId = null)
         {
-            var transactions = await _repo.GetAllTransactionsAsync();
+            var transactions = await _repo.GetAllTransactionsAsync(userId);
 
             return transactions.Select(t => new InventoryTransactionDTO
             {

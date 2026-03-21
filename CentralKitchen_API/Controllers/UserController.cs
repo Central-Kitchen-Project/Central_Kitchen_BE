@@ -33,7 +33,7 @@ namespace CentralKitchen_API.Controllers
         {
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
-                return NotFound(new { Error = "US40401", Message = "Không tìm thấy user." });
+                return NotFound(new { Error = "US40401", Message = "User not found." });
 
             return Ok(new { Status = "Success", Data = user });
         }
@@ -66,7 +66,7 @@ namespace CentralKitchen_API.Controllers
         {
             var user = await _userService.UpdateProfileAsync(id, dto);
             if (user == null)
-                return BadRequest(new { Error = "US40001", Message = "Cập nhật thất bại. Username hoặc Email đã tồn tại." });
+                return BadRequest(new { Error = "US40001", Message = "Update failed. Username or Email already exists." });
 
             return Ok(new { Status = "Success", Data = user });
         }
@@ -79,7 +79,7 @@ namespace CentralKitchen_API.Controllers
         {
             var user = await _userService.CreateUserAsync(dto);
             if (user == null)
-                return BadRequest(new { Error = "US40002", Message = "Tạo user thất bại. Username/Email đã tồn tại hoặc dữ liệu không hợp lệ." });
+                return BadRequest(new { Error = "US40002", Message = "User creation failed. Username/Email already exists or invalid data." });
 
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, new { Status = "Success", Data = user });
         }
@@ -92,7 +92,7 @@ namespace CentralKitchen_API.Controllers
         {
             var user = await _userService.UpdateUserAsync(id, dto);
             if (user == null)
-                return BadRequest(new { Error = "US40003", Message = "Cập nhật user thất bại. Username/Email đã tồn tại hoặc user không tìm thấy." });
+                return BadRequest(new { Error = "US40003", Message = "Update user failed. Username/Email already exists or user not found." });
 
             return Ok(new { Status = "Success", Data = user });
         }
@@ -105,9 +105,9 @@ namespace CentralKitchen_API.Controllers
         {
             var result = await _userService.DeleteUserAsync(id);
             if (!result)
-                return NotFound(new { Error = "US40402", Message = "Không tìm thấy user để xoá." });
+                return NotFound(new { Error = "US40402", Message = "User not found for deletion." });
 
-            return Ok(new { Status = "Success", Message = "Xoá user thành công." });
+            return Ok(new { Status = "Success", Message = "User deleted successfully." });
         }
     }
 }

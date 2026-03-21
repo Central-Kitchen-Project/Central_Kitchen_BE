@@ -29,7 +29,7 @@ namespace CentralKitchen_API.Controllers
                 return BadRequest(new { Error = "HB40005", Message = "Token invalid or reset failed." });
             }
 
-            return Ok(new { Status = "Success", Message = "Mật khẩu đã được đặt lại thành công." });
+            return Ok(new { Status = "Success", Message = "Password has been reset successfully." });
         }
 
         [HttpPost("forgot-password")]
@@ -38,9 +38,9 @@ namespace CentralKitchen_API.Controllers
             var result = await _service.ForgotPassword(dto.Email);
             if (!result)
             {
-                return BadRequest(new { Error = "HB40004", Message = "Không tìm thấy tài khoản hoặc gửi email thất bại." });
+                return BadRequest(new { Error = "HB40004", Message = "Account not found or email sending failed." });
             }
-            return Ok(new { Status = "Success", Message = "Yêu cầu đặt lại mật khẩu đã được gửi qua email." });
+            return Ok(new { Status = "Success", Message = "Password reset request has been sent via email." });
         }
 
         [HttpPost("login")]
@@ -79,14 +79,14 @@ namespace CentralKitchen_API.Controllers
             {
                 return BadRequest(new
                 {
-                    Message = "Email đã tồn tại hoặc thông tin không hợp lệ."
+                    Message = "Email already exists or invalid information."
                 });
             }
 
             return Ok(new
             {
                 Status = "Success",
-                Message = "Đăng ký tài khoản thành công!"
+                Message = "Account registered successfully!"
             });
         }
 
@@ -100,14 +100,14 @@ namespace CentralKitchen_API.Controllers
                 return BadRequest(new
                 {
                     Error = "HB40003",
-                    Message = "Mật khẩu cũ không đúng hoặc không tìm thấy tài khoản."
+                    Message = "Incorrect old password or account not found."
                 });
             }
 
             return Ok(new
             {
                 Status = "Success",
-                Message = "Đổi mật khẩu thành công!"
+                Message = "Password changed successfully!"
             });
         }
         [HttpGet("current-user")]
@@ -136,7 +136,7 @@ namespace CentralKitchen_API.Controllers
                 });
             }
 
-            return Unauthorized(new { Message = "Không thể xác thực người dùng." });
+            return Unauthorized(new { Message = "Cannot authenticate user." });
         }
 
     }

@@ -42,7 +42,7 @@ namespace CentralKitchen_Services.Services
 		public async Task<CreateOrderResultDTO> CreateOrderAsync(CreateOrderDTO dto)
 		{
 			if (dto.Items == null || dto.Items.Count == 0)
-				return new CreateOrderResultDTO { Success = false, Message = "Danh sách s?n ph?m không ???c ?? tr?ng." };
+				return new CreateOrderResultDTO { Success = false, Message = "Product list cannot be empty." };
 
 			var order = new Order
 			{
@@ -60,7 +60,7 @@ namespace CentralKitchen_Services.Services
 			return new CreateOrderResultDTO
 			{
 				Success = true,
-				Message = "T?o ??n hàng thành công.",
+				Message = "Order created successfully.",
 				Order = createdOrder != null ? MapToResponseDTO(createdOrder) : null
 			};
 		}
@@ -68,13 +68,13 @@ namespace CentralKitchen_Services.Services
 		public async Task<StatusUpdateResultDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO dto)
 		{
 			if (string.IsNullOrEmpty(dto.Status) || !ValidStatuses.Contains(dto.Status))
-				return new StatusUpdateResultDTO { Success = false, Message = "Tr?ng thái không h?p l?." };
+				return new StatusUpdateResultDTO { Success = false, Message = "Invalid status." };
 
 			var order = await _orderRepo.GetOrderByIdAsync(id);
-			if (order == null) return new StatusUpdateResultDTO { Success = false, Message = "Không tìm th?y ??n hàng." };
+			if (order == null) return new StatusUpdateResultDTO { Success = false, Message = "Order not found." };
 
 			// Prevent re-processing if order is already in the target status
-			if (order.Status == dto.Status) return new StatusUpdateResultDTO { Success = false, Message = "??n hàng ?ã ? tr?ng thái này." };
+			if (order.Status == dto.Status) return new StatusUpdateResultDTO { Success = false, Message = "Order is already in this status." };
 
 			// Save order line data before status update for inventory processing
 			var orderUserId = order.UserId;
@@ -110,11 +110,11 @@ namespace CentralKitchen_Services.Services
 			if (dto.Status == "Approved" || dto.Status == "Delivery")
 			{
 				if (!dto.ApprovedBy.HasValue || dto.ApprovedBy.Value <= 0)
-					return new StatusUpdateResultDTO { Success = false, Message = "Ng??i duy?t không h?p l?." };
+					return new StatusUpdateResultDTO { Success = false, Message = "Invalid approver." };
 
 				var approverRole = await _orderRepo.GetUserRoleNameAsync(dto.ApprovedBy.Value);
 				if (approverRole != "SupplyCoordinator")
-					return new StatusUpdateResultDTO { Success = false, Message = "Ch? Supply Coordinator m?i ???c duy?t ??n hàng." };
+					return new StatusUpdateResultDTO { Success = false, Message = "Only Supply Coordinator can approve orders." };
 
 				var itemIds = lineItems.Select(l => l.ItemId).Distinct().ToList();
 				var approverInventory = await _orderRepo.GetInventoryByUserAndItemsAsync(itemIds, dto.ApprovedBy.Value);
@@ -135,8 +135,8 @@ namespace CentralKitchen_Services.Services
 					var available = approverInventory.ContainsKey(kvp.Key) ? approverInventory[kvp.Key] : 0;
 					if (available < kvp.Value)
 					{
-                        var name = itemNames.ContainsKey(kvp.Key) ? itemNames[kvp.Key] : $"Mã {kvp.Key}";
-                        missingList.Add($"Thi?u {name}: c?n {kvp.Value}, còn l?i {available}");
+                        var name = itemNames.ContainsKey(kvp.Key) ? itemNames[kvp.Key] : $"Code {kvp.Key}";
+                        missingList.Add($"Missing {name}: need {kvp.Value}, remaining {available}");
 					}
 				}
 
@@ -145,7 +145,7 @@ namespace CentralKitchen_Services.Services
                     return new StatusUpdateResultDTO 
                     { 
                         Success = false, 
-                        Message = "Không ?? s? l??ng trong kho ?ê? duyê?t.", 
+                        Message = "Not enough inventory to approve.", 
                         MissingItems = missingList 
                     };
                 }
@@ -165,7 +165,7 @@ namespace CentralKitchen_Services.Services
 					}
 				}
 
-				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
+				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
 			}
 
 			// When order is completed ? add inventory to the franchise store
@@ -179,7 +179,7 @@ namespace CentralKitchen_Services.Services
 					await AddInventoryToFranchise(orderUserId, lineItems, id);
 				}
 
-				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
+				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
 			}
 
 			// When order is cancelled or rejected after approval ? restore inventory to the supply coordinator
@@ -199,13 +199,13 @@ namespace CentralKitchen_Services.Services
 					}
 				}
 
-				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
+				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
 			}
 
 			// For other status transitions (Processing, Cancelled from Pending, etc.)
 			order.Status = dto.Status;
 			var finalUpdated = await _orderRepo.UpdateOrderAsync(order);
-			return new StatusUpdateResultDTO { Success = finalUpdated, Message = finalUpdated ? "Thành công" : "C?p nh?t l?i" };
+			return new StatusUpdateResultDTO { Success = finalUpdated, Message = finalUpdated ? "Success" : "Update failed" };
 		}
 
 		/// <summary>

@@ -34,7 +34,7 @@ namespace CentralKitchen_API.Controllers
             var order = await _orderService.GetOrderByIdAsync(id);
             if (order == null)
             {
-                return NotFound(new { Error = "OR40001", Message = "Không tìm thấy đơn hàng." });
+                return NotFound(new { Error = "OR40001", Message = "Order not found." });
             }
             return Ok(new { Status = "Success", Data = order });
         }
@@ -83,9 +83,9 @@ namespace CentralKitchen_API.Controllers
                         MissingItems = result.MissingItems
                     });
                 }
-                return BadRequest(new { Error = "OR40003", Message = result.Message ?? "Cập nhật trạng thái thất bại. Trạng thái không hợp lệ hoặc không tìm thấy đơn hàng." });
+                return BadRequest(new { Error = "OR40003", Message = result.Message ?? "Update status failed. Invalid status or order not found." });
             }
-            return Ok(new { Status = "Success", Message = "Cập nhật trạng thái đơn hàng thành công." });
+            return Ok(new { Status = "Success", Message = "Order status updated successfully." });
         }
 
         /// <summary>
@@ -97,9 +97,9 @@ namespace CentralKitchen_API.Controllers
             var result = await _orderService.DeleteOrderAsync(id);
             if (!result)
             {
-                return BadRequest(new { Error = "OR40004", Message = "Xoá đơn hàng thất bại. Đơn hàng không tồn tại hoặc trạng thái không phải Pending." });
+                return BadRequest(new { Error = "OR40004", Message = "Delete order failed. Order does not exist or status is not Pending." });
             }
-            return Ok(new { Status = "Success", Message = "Xoá đơn hàng thành công." });
+            return Ok(new { Status = "Success", Message = "Order deleted successfully." });
         }
     }
 }

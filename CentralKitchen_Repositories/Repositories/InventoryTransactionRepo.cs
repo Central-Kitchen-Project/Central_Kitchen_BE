@@ -19,13 +19,21 @@ namespace CentralKitchen_Repositories.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<InventoryTransaction>> GetAllTransactionsAsync()
+        public async Task<IEnumerable<InventoryTransaction>> GetAllTransactionsAsync(int? userId = null)
         {
-            return await _context.InventoryTransactions
+            var query = _context.InventoryTransactions
                 .Include(t => t.Inventory)
                     .ThenInclude(i => i.Item)
                 .Include(t => t.Inventory)
                     .ThenInclude(i => i.Location)
+                .AsQueryable();
+
+            if (userId.HasValue)
+            {
+                query = query.Where(t => t.Inventory.ManagedBy == userId.Value);
+            }
+
+            return await query
                 .OrderByDescending(t => t.CreatedAt) // Mới nhất lên đầu
                 .ToListAsync();
         }
