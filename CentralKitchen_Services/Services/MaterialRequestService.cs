@@ -90,7 +90,7 @@ namespace CentralKitchen_Services.Services
         public async Task<StatusUpdateResultDTO> UpdateMaterialRequestStatusAsync(int id, UpdateMaterialRequestStatusDTO dto)
         {
             if (string.IsNullOrEmpty(dto.Status) || !ValidStatuses.Contains(dto.Status))
-                return new StatusUpdateResultDTO { Success = false, Message = "Tr?ng thái không h?p l?." };
+                return new StatusUpdateResultDTO { Success = false, Message = "Invalid status." };
 
             if (dto.Status == "Approved" || dto.Status == "Fulfilled" || dto.Status == "Confirmed")
             {
@@ -104,7 +104,7 @@ namespace CentralKitchen_Services.Services
             }
 
             var updated = await _repo.UpdateStatusAsync(id, dto.Status);
-            return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Thành công" : "C?p nh?t l?i" };
+            return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
         }
 
         private MaterialRequestResponseDTO MapToResponseDTO(MaterialRequest mr)

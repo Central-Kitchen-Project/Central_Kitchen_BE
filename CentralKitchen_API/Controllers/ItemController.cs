@@ -93,7 +93,7 @@ namespace CentralKitchen_API.Controllers
         public async Task<IActionResult> CreateFinishedProductRecipe( [FromBody] CreateFinishedProductDto dto)
         {
             if (dto == null || !dto.Ingredients.Any())
-                return BadRequest("Dữ liệu nguyên liệu không được để trống.");
+                return BadRequest("Ingredient data cannot be empty.");
 
             try
             {
@@ -101,11 +101,11 @@ namespace CentralKitchen_API.Controllers
                 var success = await _itemService.CreateRecipeAsync(dto);
 
                 if (!success)
-                    return NotFound($"Không tìm thấy thành phẩm với ID {dto.FinishedItemId}");
+                    return NotFound($"Finished product with ID {dto.FinishedItemId} not found");
 
                 return Ok(new
                 {
-                    Message = "Đã lưu công thức thành công",
+                    Message = "Recipe saved successfully",
                     //CreatedBy = userId,
                     FinishedItemId = dto.FinishedItemId,
                     TotalIngredients = dto.Ingredients.Count
@@ -113,33 +113,33 @@ namespace CentralKitchen_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Lỗi server: {ex.Message}");
+                return StatusCode(500, $"Server error: {ex.Message}");
             }
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateItem(int id, [FromBody] ItemUpdateDto dto)
         {
-            if (dto == null) return BadRequest("Dữ liệu không hợp lệ");
+            if (dto == null) return BadRequest("Invalid data");
 
             var result = await _itemService.UpdateItemAsync(id, dto);
 
             if (!result)
-                return NotFound(new { message = $"Không tìm thấy Item với ID {id}" });
+                return NotFound(new { message = $"Item with ID {id} not found" });
 
-            return Ok(new { message = "Cập nhật thông tin Item thành công" });
+            return Ok(new { message = "Item information updated successfully" });
         }
         [HttpPut("update-ingredients")]
         public async Task<IActionResult> UpdateIngredients([FromBody] UpdateRecipeDto dto)
         {
             if (dto == null || dto.FinishedItemId <= 0)
-                return BadRequest("Dữ liệu thành phẩm không hợp lệ.");
+                return BadRequest("Invalid finished product data.");
 
             var result = await _recipeService.UpdateFinishedProductRecipeAsync(dto);
 
             if (result)
-                return Ok(new { message = "Cập nhật danh sách nguyên liệu thành công." });
+                return Ok(new { message = "Ingredients list updated successfully." });
 
-            return StatusCode(500, "Có lỗi xảy ra trong quá trình cập nhật nguyên liệu.");
+            return StatusCode(500, "An error occurred while updating ingredients.");
         }
 
         [HttpDelete("{id}")]
@@ -151,13 +151,13 @@ namespace CentralKitchen_API.Controllers
             {
                 return NotFound(new
                 {
-                    message = $"Không tìm thấy sản phẩm có ID {id} hoặc sản phẩm đã bị xóa trước đó."
+                    message = $"Product with ID {id} not found or was already deleted."
                 });
             }
 
             return Ok(new
             {
-                message = $"Sản phẩm ID {id} đã được chuyển sang trạng thái ngưng hoạt động."
+                message = $"Product ID {id} has been deactivated."
             });
         }
     }

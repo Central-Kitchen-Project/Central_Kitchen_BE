@@ -35,7 +35,7 @@ namespace CentralKitchen_API.Controllers
             var result = await _service.CreateMaterialRequestAsync(dto);
             if (result == null)
             {
-                return BadRequest(new { Error = "MR40001", Message = "Danh sách v?t t? không ???c ?? tr?ng." });
+                return BadRequest(new { Error = "MR40001", Message = "Material list cannot be empty." });
             }
 
             return CreatedAtAction(nameof(GetMaterialRequestById), new { id = result.Id }, new { Status = "Success", Data = result });
@@ -70,7 +70,7 @@ namespace CentralKitchen_API.Controllers
             var request = await _service.GetMaterialRequestByIdAsync(id);
             if (request == null)
             {
-                return NotFound(new { Error = "MR40002", Message = "Không tìm th?y yêu c?u v?t t?." });
+                return NotFound(new { Error = "MR40002", Message = "Material request not found." });
             }
             return Ok(new { Status = "Success", Data = request });
         }
@@ -92,9 +92,9 @@ namespace CentralKitchen_API.Controllers
                         MissingItems = result.MissingItems
                     });
                 }
-                return BadRequest(new { Error = "MR40003", Message = result.Message ?? "C?p nh?t tr?ng thái th?t b?i." });
+                return BadRequest(new { Error = "MR40003", Message = result.Message ?? "Status update failed." });
             }
-            return Ok(new { Status = "Success", Message = "C?p nh?t tr?ng thái yêu c?u v?t t? thành công." });
+            return Ok(new { Status = "Success", Message = "Material request status updated successfully." });
         }
     }
 }

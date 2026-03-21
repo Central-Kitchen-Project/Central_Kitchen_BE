@@ -11,6 +11,7 @@ namespace CentralKitchen_Services.DTOs
         public string Description { get; set; }
         public string Unit { get; set; }
         public decimal? Price { get; set; }
+        public bool IsActive { get; set; }
         public List<IngredientDTO> Ingredients { get; set; } = new List<IngredientDTO>();
     }
 }

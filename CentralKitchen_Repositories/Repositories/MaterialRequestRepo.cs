@@ -81,7 +81,7 @@ namespace CentralKitchen_Repositories.Repositories
                     .FirstOrDefaultAsync(mr => mr.Id == id);
 
                 if (request == null)
-                    return (false, "Không tìm th?y Material Request", new List<string>());
+                    return (false, "Material Request not found", new List<string>());
 
                 // Check if inventory was already updated for this request
                 var alreadyUpdated = await _context.InventoryTransactions
@@ -107,14 +107,14 @@ namespace CentralKitchen_Repositories.Repositories
                                 
                             if (ckInv < line.RequestedQuantity)
                             {
-                                var itemName = line.Item?.ItemName ?? $"Mã {line.ItemId}";
-                                missingList.Add($"Thi?u {itemName}: c?n {line.RequestedQuantity}, còn l?i ? Central Kitchen là {ckInv}");
+                                var itemName = line.Item?.ItemName ?? $"Code {line.ItemId}";
+                                missingList.Add($"Missing {itemName}: need {line.RequestedQuantity}, remaining in Central Kitchen is {ckInv}");
                             }
                         }
                         
                         if (missingList.Count > 0)
                         {
-                            return (false, "Central Kitchen không ?? s? l??ng t?n kho.", missingList);
+                            return (false, "Central Kitchen doesn't have enough inventory.", missingList);
                         }
                         
                         // Deduct from Central Kitchen
@@ -160,7 +160,7 @@ namespace CentralKitchen_Repositories.Repositories
                                 ?? 0;
 
                             if (locationId == 0)
-                                return (false, "Không tìm th?y location h?p l?.", new List<string>());
+                                return (false, "Valid location not found.", new List<string>());
 
                             inventory = new Inventory
                             {
@@ -190,12 +190,12 @@ namespace CentralKitchen_Repositories.Repositories
                 request.Status = targetStatus;
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return (true, "Thành công", new List<string>());
+                return (true, "Success", new List<string>());
             }
             catch(Exception)
             {
                 await transaction.RollbackAsync();
-                return (false, "Có l?i x?y ra trong quá trình x? lý.", new List<string>());
+                return (false, "An error occurred during processing.", new List<string>());
             }
         }
 

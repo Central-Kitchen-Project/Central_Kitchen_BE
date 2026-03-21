@@ -15,9 +15,9 @@ namespace CentralKitchen_API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? userId = null)
         {
-            var result = await _service.GetTransactionHistory();
+            var result = await _service.GetTransactionHistory(userId);
             return Ok(result);
         }
         [HttpGet("{id}")]

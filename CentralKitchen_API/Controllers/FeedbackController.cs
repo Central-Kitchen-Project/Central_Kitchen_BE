@@ -33,7 +33,7 @@ namespace CentralKitchen_API.Controllers
         {
             var feedback = await _feedbackService.GetFeedbackByIdAsync(id);
             if (feedback == null)
-                return NotFound(new { Error = "FB40401", Message = "Không tìm thấy feedback." });
+                return NotFound(new { Error = "FB40401", Message = "Feedback not found." });
 
             return Ok(new { Status = "Success", Data = feedback });
         }
@@ -69,7 +69,7 @@ namespace CentralKitchen_API.Controllers
                 return BadRequest(new
                 {
                     Error = "FB40001",
-                    Message = "Tạo feedback thất bại. Kiểm tra lại Category (Quality/Packaging/Delivery) và Subject không được để trống."
+                    Message = "Feedback creation failed. Check that Category (Quality/Packaging/Delivery) and Subject are not empty."
                 });
 
             return CreatedAtAction(nameof(GetFeedbackById), new { id = feedback.Id }, new { Status = "Success", Data = feedback });
@@ -86,10 +86,10 @@ namespace CentralKitchen_API.Controllers
                 return BadRequest(new
                 {
                     Error = "FB40002",
-                    Message = "Cập nhật trạng thái thất bại. Kiểm tra lại Status (Received/Under Review/Resolved)."
+                    Message = "Update status failed. Check Status (Received/Under Review/Resolved)."
                 });
 
-            return Ok(new { Status = "Success", Message = "Cập nhật trạng thái feedback thành công." });
+            return Ok(new { Status = "Success", Message = "Feedback status updated successfully." });
         }
 
         /// <summary>
@@ -100,9 +100,9 @@ namespace CentralKitchen_API.Controllers
         {
             var result = await _feedbackService.DeleteFeedbackAsync(id);
             if (!result)
-                return NotFound(new { Error = "FB40402", Message = "Không tìm thấy feedback để xoá." });
+                return NotFound(new { Error = "FB40402", Message = "Feedback not found for deletion." });
 
-            return Ok(new { Status = "Success", Message = "Xoá feedback thành công." });
+            return Ok(new { Status = "Success", Message = "Feedback deleted successfully." });
         }
     }
 }
