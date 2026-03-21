@@ -107,7 +107,7 @@ namespace CentralKitchen_Services.Services
 				.ToList();
 
 			// When accepting order (Approved), validate and deduct from the approving supply coordinator
-			if (dto.Status == "Approved")
+			if (dto.Status == "Approved" || dto.Status == "Delivery")
 			{
 				if (!dto.ApprovedBy.HasValue || dto.ApprovedBy.Value <= 0)
 					return new StatusUpdateResultDTO { Success = false, Message = "Ng??i duy?t không h?p l?." };
