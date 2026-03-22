@@ -58,7 +58,8 @@ namespace CentralKitchen_Services.Services
                 ItemType = dto.ItemType,
                 Description = dto.Description,
                 Price = dto.Price,
-                Category = dto.Category
+                Category = dto.Category,
+                IsActive = true
             };
 
             var created = await _itemRepo.CreateItemWithInventoryAsync(item);
