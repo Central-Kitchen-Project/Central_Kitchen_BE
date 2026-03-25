@@ -94,7 +94,7 @@ namespace CentralKitchen_Services.Services
 
             if (dto.Status == "Approved" || dto.Status == "Fulfilled" || dto.Status == "Confirmed")
             {
-                var repoResult = await _repo.ApproveAndUpdateInventoryAsync(id, dto.Status);
+                var repoResult = await _repo.ApproveAndUpdateInventoryAsync(id, dto.Status, dto.AcceptedByUserId);
                 return new StatusUpdateResultDTO 
                 { 
                     Success = repoResult.Success, 
@@ -103,7 +103,7 @@ namespace CentralKitchen_Services.Services
                 };
             }
 
-            var updated = await _repo.UpdateStatusAsync(id, dto.Status);
+            var updated = await _repo.UpdateStatusAsync(id, dto.Status, dto.AcceptedByUserId);
             return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
         }
 
@@ -114,6 +114,7 @@ namespace CentralKitchen_Services.Services
                 Id = mr.Id,
                 OrderId = mr.OrderId,
                 RequestedByUsername = mr.RequestedByUser?.Username ?? "",
+                AcceptedByUsername = mr.AcceptedByUser?.Username,
                 Status = mr.Status ?? "",
                 Note = mr.Note,
                 CreatedAt = mr.CreatedAt,

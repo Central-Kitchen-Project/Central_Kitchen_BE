@@ -21,6 +21,7 @@ namespace CentralKitchen_Repositories.Repositories
             return await _context.MaterialRequests
                 .Include(mr => mr.Order)
                 .Include(mr => mr.RequestedByUser)
+                .Include(mr => mr.AcceptedByUser)
                 .Include(mr => mr.MaterialRequestLines)
                     .ThenInclude(l => l.Item)
                 .OrderByDescending(mr => mr.CreatedAt)
@@ -32,6 +33,7 @@ namespace CentralKitchen_Repositories.Repositories
             return await _context.MaterialRequests
                 .Include(mr => mr.Order)
                 .Include(mr => mr.RequestedByUser)
+                .Include(mr => mr.AcceptedByUser)
                 .Include(mr => mr.MaterialRequestLines)
                     .ThenInclude(l => l.Item)
                 .Where(mr => mr.OrderId == orderId)
@@ -44,6 +46,7 @@ namespace CentralKitchen_Repositories.Repositories
             return await _context.MaterialRequests
                 .Include(mr => mr.Order)
                 .Include(mr => mr.RequestedByUser)
+                .Include(mr => mr.AcceptedByUser)
                 .Include(mr => mr.MaterialRequestLines)
                     .ThenInclude(l => l.Item)
                 .FirstOrDefaultAsync(mr => mr.Id == id);
@@ -61,16 +64,20 @@ namespace CentralKitchen_Repositories.Repositories
             return await GetByIdAsync(request.Id);
         }
 
-        public async Task<bool> UpdateStatusAsync(int id, string status)
+        public async Task<bool> UpdateStatusAsync(int id, string status, int? acceptedByUserId)
         {
             var request = await _context.MaterialRequests.FindAsync(id);
             if (request == null) return false;
 
             request.Status = status;
+            if (acceptedByUserId.HasValue && status == "Approved" || status == "Fulfilled" || status == "Confirmed")
+            {
+                request.AcceptedBy = acceptedByUserId;
+            }
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<(bool Success, string Message, List<string> MissingList)> ApproveAndUpdateInventoryAsync(int id, string targetStatus)
+        public async Task<(bool Success, string Message, List<string> MissingList)> ApproveAndUpdateInventoryAsync(int id, string targetStatus, int? acceptedByUserId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -82,6 +89,11 @@ namespace CentralKitchen_Repositories.Repositories
 
                 if (request == null)
                     return (false, "Material Request not found", new List<string>());
+
+                if (acceptedByUserId.HasValue)
+                {
+                    request.AcceptedBy = acceptedByUserId;
+                }
 
                 // Check if inventory was already updated for this request
                 var alreadyUpdated = await _context.InventoryTransactions

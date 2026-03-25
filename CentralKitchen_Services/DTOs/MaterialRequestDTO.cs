@@ -24,6 +24,7 @@ namespace CentralKitchen_Services.DTOs
         public int Id { get; set; }
         public int OrderId { get; set; }
         public string RequestedByUsername { get; set; }
+        public string? AcceptedByUsername { get; set; }
         public string Status { get; set; }
         public string? Note { get; set; }
         public DateTime? CreatedAt { get; set; }
@@ -54,5 +55,6 @@ namespace CentralKitchen_Services.DTOs
     public class UpdateMaterialRequestStatusDTO
     {
         public string Status { get; set; }
+        public int? AcceptedByUserId { get; set; }
     }
 }
