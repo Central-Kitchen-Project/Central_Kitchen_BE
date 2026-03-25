@@ -458,6 +458,8 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+                
+            entity.Property(e => e.AcceptedBy).HasColumnName("accepted_by");
 
             entity.HasOne(d => d.Order).WithMany(p => p.MaterialRequests)
                 .HasForeignKey(d => d.OrderId)
@@ -468,6 +470,11 @@ public partial class CentralKitchenDBContext : DbContext
                 .HasForeignKey(d => d.RequestedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_material_request_user");
+                
+            entity.HasOne(d => d.AcceptedByUser).WithMany(p => p.AcceptedMaterialRequests)
+                .HasForeignKey(d => d.AcceptedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_material_request_accepted_by");
         });
 
         modelBuilder.Entity<MaterialRequestLine>(entity =>
