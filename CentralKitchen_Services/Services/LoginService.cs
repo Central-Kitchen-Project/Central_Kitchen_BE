@@ -86,7 +86,7 @@ namespace CentralKitchen_Services.Services
 
 		public async Task<bool> Register(RegisterRequestDTO registerDto)
 		{
-			if (await _repository.UserExists(registerDto.Username))
+			if (await _repository.UserExists(registerDto.Email))
 			{
 				return false;
 			}

@@ -17,10 +17,13 @@ public partial class MaterialRequest
     public string Note { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+    
+    public int? AcceptedBy { get; set; }
 
     public virtual Order Order { get; set; }
 
     public virtual User RequestedByUser { get; set; }
+    public virtual User AcceptedByUser { get; set; }
 
     public virtual ICollection<MaterialRequestLine> MaterialRequestLines { get; set; } = new List<MaterialRequestLine>();
 }

@@ -115,6 +115,7 @@ namespace CentralKitchen_Services.Services
             existingItem.Description = dto.Description;
             existingItem.Price = dto.Price;
             existingItem.Category = dto.Category;
+            existingItem.IsActive = dto.IsActive;
             // created_at thường giữ nguyên không cập nhật
 
             await _itemRepo.UpdateAsync(existingItem);
