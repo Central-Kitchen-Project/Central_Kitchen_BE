@@ -14,7 +14,7 @@ namespace CentralKitchen_Services.Services
 	{
 		private readonly OrderRepo _orderRepo;
 
-		// Danh s�ch tr?ng th�i h?p l?
+		// Danh s�ch tr?ng th�i h?p l?
 		private static readonly List<string> ValidStatuses = new List<string>
 		{
 			"Pending", "Confirmed", "Approved", "Processing", "Delivery", "Completed", "Cancelled", "Rejected"
@@ -73,10 +73,10 @@ namespace CentralKitchen_Services.Services
 			var order = await _orderRepo.GetOrderByIdAsync(id);
 			if (order == null) return new StatusUpdateResultDTO { Success = false, Message = "Order not found." };
 
-			// Prevent re-processing if order is already in the target status
+			// Tránh xử lý lại đơn hàng
 			if (order.Status == dto.Status) return new StatusUpdateResultDTO { Success = false, Message = "Order is already in this status." };
 
-			// Save order line data before status update for inventory processing
+			// Luu tru du lieu chi tiet don hang truoc khi cap nhat trang thai de phuc vu qua trinh tru/cong kho
 			var orderUserId = order.UserId;
 
 			var rawLineItems = new List<(int ItemId, decimal Quantity)>();
@@ -87,7 +87,7 @@ namespace CentralKitchen_Services.Services
 
 				if (ol.Item != null && ol.Item.RecipeFinishedItems != null && ol.Item.RecipeFinishedItems.Any())
 				{
-					// It's a finished product, convert to ingredients
+					// Day la thanh pham, can phan ra thanh cac nguyen lieu con
 					foreach (var recipe in ol.Item.RecipeFinishedItems)
 					{
 						rawLineItems.Add((recipe.IngredientItemId, recipe.Quantity * qty));
@@ -95,18 +95,18 @@ namespace CentralKitchen_Services.Services
 				}
 				else
 				{
-					// It's an ingredient or un-reciped item
+					// Day la nguyen lieu tho hoac mon khong co cong thuc
 					rawLineItems.Add((ol.ItemId, qty));
 				}
 			}
 
-			// Aggregate grouped quantities
+			// Gop chung so luong cua cac mon trung lap
 			var lineItems = rawLineItems
 				.GroupBy(x => x.ItemId)
 				.Select(g => (ItemId: g.Key, Quantity: g.Sum(x => x.Quantity)))
 				.ToList();
 
-			// When accepting order (Approved), validate and deduct from the approving supply coordinator
+			// Khi xac nhan don (Approved), tien hanh kiem tra va tru kho cua Supply Coordinator truc tiep duyet don
 			if (dto.Status == "Approved" || dto.Status == "Delivery")
 			{
 				if (!dto.ApprovedBy.HasValue || dto.ApprovedBy.Value <= 0)
@@ -121,7 +121,7 @@ namespace CentralKitchen_Services.Services
 
                 var itemNames = await _orderRepo.GetItemNamesByIdsAsync(itemIds);
 
-				// Check that this supply coordinator has enough inventory
+				// Kiem tra xem Supply Coordinator nay co du ton kho nguyen lieu hay khong
 				var totalNeededPerItem = lineItems
 					.GroupBy(l => l.ItemId)
 					.ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
@@ -150,7 +150,7 @@ namespace CentralKitchen_Services.Services
                     };
                 }
 
-				// Deduct from the approving supply coordinator's inventory immediately
+				// Lap tuc tru so luong xuat khoi kho cua Supply Coordinator duyet don
 				order.ApprovedBy = dto.ApprovedBy.Value;
 				order.Status = dto.Status;
 				var updated = await _orderRepo.UpdateOrderAsync(order);
@@ -168,7 +168,7 @@ namespace CentralKitchen_Services.Services
 				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
 			}
 
-			// When order is completed ? add inventory to the franchise store
+			// Khi don hang hoan tat -> cong kho cho chi nhanh cua hang nhuong quyen
 			if (dto.Status == "Completed")
 			{
 				order.Status = dto.Status;
@@ -182,7 +182,7 @@ namespace CentralKitchen_Services.Services
 				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
 			}
 
-			// When order is cancelled or rejected after approval ? restore inventory to the supply coordinator
+			// Khi don hang bi huy hoac tu choi sau khi da duyet -> hoan tra lai ton kho cho Supply Coordinator
 			if ((dto.Status == "Cancelled" || dto.Status == "Rejected") && order.ApprovedBy.HasValue)
 			{
 				var supplierId = order.ApprovedBy.Value;
@@ -202,15 +202,15 @@ namespace CentralKitchen_Services.Services
 				return new StatusUpdateResultDTO { Success = updated, Message = updated ? "Success" : "Update failed" };
 			}
 
-			// For other status transitions (Processing, Cancelled from Pending, etc.)
+			// Doi voi cac chuyen doi trang thai khac (Processing, Cancelled tu Pending, v.v.)
 			order.Status = dto.Status;
 			var finalUpdated = await _orderRepo.UpdateOrderAsync(order);
 			return new StatusUpdateResultDTO { Success = finalUpdated, Message = finalUpdated ? "Success" : "Update failed" };
 		}
 
 		/// <summary>
-		/// Add inventory to the franchise store when order is completed.
-		/// The supply coordinator's inventory was already deducted at approval time.
+		/// Cộng kho cho cửa hàng nhượng quyền khi đơn hàng hoàn tất.
+		/// (Tồn kho của Supply Coordinator đã được trừ sẵn lúc duyệt đơn).
 		/// </summary>
 		private async Task AddInventoryToFranchise(int orderUserId, List<(int ItemId, decimal Quantity)> orderLines, int orderId)
 		{
@@ -245,14 +245,14 @@ namespace CentralKitchen_Services.Services
 			var order = await _orderRepo.GetOrderByIdAsync(id);
 			if (order == null) return false;
 
-			// Ch? cho ph�p xo� ??n h�ng c� tr?ng th�i "Pending"
+			// Ch? cho ph�p xo� ??n h�ng c� tr?ng th�i "Pending"
 			if (order.Status != "Pending")
 				return false;
 
 			return await _orderRepo.DeleteOrderAsync(id);
 		}
 
-		// ===== Helper: Map Entity ? DTO =====
+		// ===== Helper: Map Entity -> DTO =====
 		private OrderResponseDTO MapToResponseDTO(Order order)
 		{
 			return new OrderResponseDTO
